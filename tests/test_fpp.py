@@ -1,4 +1,5 @@
 import unittest
+import pandas as pd
 from statwrap.fpp import apply_pd_changes, sd
 
 class TestStd(unittest.TestCase):
