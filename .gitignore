@@ -1,0 +1,17 @@
+
+.DS_Store
+statwrap/__pycache__/utils.cpython-39.pyc
+statwrap/__pycache__/sheets.cpython-39.pyc
+statwrap/__pycache__/__init__.cpython-311.pyc
+statwrap/__pycache__/__init__.cpython-39.pyc
+statwrap/__pycache__/core.cpython-39.pyc
+statwrap/__pycache__/fpp.cpython-311.pyc
+statwrap/__pycache__/fpp.cpython-39.pyc
+statwrap/__pycache__/random.cpython-311.pyc
+statwrap/__pycache__/requirements.txt
+StatWrap.egg-info/top_level.txt
+StatWrap.egg-info/SOURCES.txt
+StatWrap.egg-info/requires.txt
+StatWrap.egg-info/PKG-INFO
+StatWrap.egg-info/not-zip-safe
+StatWrap.egg-info/dependency_links.txt
