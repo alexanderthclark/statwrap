@@ -15,3 +15,6 @@ StatWrap.egg-info/requires.txt
 StatWrap.egg-info/PKG-INFO
 StatWrap.egg-info/not-zip-safe
 StatWrap.egg-info/dependency_links.txt
+statwrap/__pycache__/utils.cpython-311.pyc
+statwrap/__pycache__/core.cpython-311.pyc
+statwrap/__pycache__/sheets.cpython-311.pyc

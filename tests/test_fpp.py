@@ -5,7 +5,7 @@ class TestStd(unittest.TestCase):
 
 	def setUp(self):
 		self.numbers = [-1,0,1]
-		self.df = pd.DataFrame('col1': self.numbers)
+		self.df = pd.DataFrame({'col1': self.numbers})
 
 	def test_sd(self):
 		sd_ = sd(self.numbers)
