@@ -10,6 +10,9 @@ setuptools.setup(
     long_description=long_description,  # This is the new line
     long_description_content_type="text/markdown",  # This is the new line
     url='https://github.com/alexanderthclark/statwrap',
+    project_urls={
+        'Documentation': 'https://statwrap.readthedocs.io/'
+    },
     author='Alexander Clark',
     install_requires=['pandas','numpy','scipy', 'IPython'],
     author_email='',  # consider adding your email
