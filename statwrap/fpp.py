@@ -8,7 +8,7 @@ from statwrap.utils import modify_std, args_to_array
 
 def sd(*args):
     """
-    Computes the population standard deviation.
+    Computes the population standard deviation, or SD.
 
     Parameters
     ----------
@@ -62,7 +62,7 @@ def var(*args):
 
 def sd_plus(*args):
     """
-    Computes the sample standard deviation.
+    Computes the sample standard deviation, or SD+.
 
     Parameters
     ----------
