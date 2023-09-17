@@ -8,43 +8,57 @@ from statwrap.sheets import sheets_setup
 
 @register_line_magic
 def use_fpp(line):
+	'''
+	Load the fpp module. 
+
+	This imports functions that adhere to the conventions found in "Statistics" by Freedman, Pisani, and Purves.
+
+
+	Parameters
+	----------
+	line : str
+		Unused parameter retained for compatibility with IPython line magic.
+
+	Returns
+	-------
+	None
+
+	Examples
+	--------
+	Using this function in IPython:
+
+	.. code-block:: python
+
+		%use_fpp
+	'''
 	ip = get_ipython()
 	ip.ex("from statwrap.fpp import *")
 	fpp_setup()
 
 @register_line_magic
 def use_sheets(line):
-	ip = get_ipython()
-	ip.ex("from statwrap.sheets import *")
-	sheets_setup()
+	'''
+	Load the sheets module. 
 
-def modify_std(original_method):
-	"""
-	Modifies a standard deviation method to adjust the 'ddof' parameter.
+	This imports functions that adhere to the conventions specific to Google Sheets.
 
 	Parameters
 	----------
-	original_method : callable
-		The original method for standard deviation or variance that accepts a 'ddof' parameter.
+	line : str
+		Unused parameter retained for compatibility with IPython line magic.
 
 	Returns
 	-------
-	tuple of callables
-		A tuple containing two modified methods:
-		- `pop_std` for population standard deviation (ddof=0)
-		- `sample_std` for sample standard deviation (ddof=1).
+	None
 
-	Notes
-	-----
-	If the 'ddof' parameter is already provided when calling the returned methods,
-	it will not be overwritten.
-	"""
-	def pop_std(self, **kwargs):
-		if 'ddof' not in kwargs:
-			kwargs['ddof'] = 0
-		return original_method(self, **kwargs)
-	def sample_std(self, **kwargs):
-		if 'ddof' not in kwargs:
-			kwargs['ddof'] = 1
-		return original_method(self, **kwargs)
-	return pop_std, sample_std
+	Examples
+	--------
+	Using this function in IPython:
+
+	.. code-block:: python
+
+		%use_sheets
+	'''
+	ip = get_ipython()
+	ip.ex("from statwrap.sheets import *")
+	sheets_setup()

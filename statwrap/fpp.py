@@ -4,16 +4,17 @@ Stats functions adapted to the conventions of Freedman, Pisani, and Purves 2007.
 import numpy as np
 import pandas as pd
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std
+from statwrap.utils import modify_std, args_to_array
 
-def sd(a):
+def sd(*args):
     """
     Computes the population standard deviation.
 
     Parameters
     ----------
-    a : array_like
-        Input array or object that can be converted to an array.
+    args : array_like or numeric scalars
+        Input data. This can be a single array-like object or individual numbers.
+        Both sd([1,2]) and sd(1,2) are valid.
 
     Returns
     -------
@@ -25,17 +26,22 @@ def sd(a):
     >>> sd([-1, 0, 1])
     0.816496580927726
 
+    >>> sd(-1,0,1)
+    0.816496580927726
+
     """
+    a = args_to_array(args)
     return np.std(a, ddof=0)
 
-def var(a):
+def var(*args):
     """
     Computes the population variance.
 
     Parameters
     ----------
-    a : array_like
-        Input array or object that can be converted to an array.
+    args : array_like or numeric scalars
+        Input data. This can be a single array-like object or individual numbers.
+        Both var([1,2]) and var(1,2) are valid.
 
     Returns
     -------
@@ -47,17 +53,22 @@ def var(a):
     >>> var([-1, 0, 1])
     0.6666666666666666
 
+    >>> var(-1, 0, 1)
+    0.6666666666666666
+    
     """
+    a = args_to_array(args)
     return np.var(a, ddof=0)
 
-def sd_plus(a):
+def sd_plus(*args):
     """
     Computes the sample standard deviation.
 
     Parameters
     ----------
-    a : array_like
-        Input array or object that can be converted to an array.
+    args : array_like or numeric scalars
+        Input data. This can be a single array-like object or individual numbers.
+        Both sd_plus([1,2]) and sd_plus(1,2) are valid.
 
     Returns
     -------
@@ -68,18 +79,23 @@ def sd_plus(a):
     --------
     >>> sd_plus([-1, 0, 1])
     1.0
-
+    
+    >>> sd_plus(-1, 0, 1)
+    1.0
+    
     """
+    a = args_to_array(args)
     return np.std(a, ddof=1)
 
-def var_plus(a):
+def var_plus(*args):
     """
     Computes the sample variance.
 
     Parameters
     ----------
-    a : array_like
-        Input array or object that can be converted to an array.
+    args : array_like or numeric scalars
+        Input data. This can be a single array-like object or individual numbers.
+        Both var_plus([1,2]) and var_plus(1,2) are valid.
 
     Returns
     -------
@@ -91,7 +107,11 @@ def var_plus(a):
     >>> var_plus([-1, 0, 1])
     1.0
 
+    >>> var_plus(-1, 0, 1)
+    1.0
+
     """
+    a = args_to_array(args)
     return np.var(a, ddof=1)
 
 def change_std_behavior(pd_obj):

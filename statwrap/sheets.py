@@ -4,40 +4,17 @@ Stats functions adapted to the conventions of Google Sheets.
 import numpy as np
 import pandas as pd
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std
+from statwrap.utils import modify_std, args_to_array
 
-def stdevp(a):
-	'''
-	Computes the population standard deviation, or STDEVP().
-	'''
-	return np.std(a, ddof=0)
-
-def varp(a):
-	'''
-	Computes the population variance, or VARP().
-	'''
-	return np.var(a, ddof=0)
-
-def stdev(a):
-	'''
-	Computes the sample standard deviation, or STDEV().
-	'''
-	return np.std(a, ddof=1)
-
-def var(a):
-	'''
-	Computes the sample variance, or VAR().
-	'''
-	return np.var(a, ddof=1)
-
-def stdevp(a):
+def stdevp(*args):
 	"""
 	Computes the population standard deviation, or STDEVP().
 
 	Parameters
 	----------
-	a : array_like
-	    Input data.
+	args : array_like or numeric scalars
+	    Input data. This can be a single array-like object or individual numbers.
+	    Both stdevp([1,2]) and stdevp(1,2) are valid.
 
 	Returns
 	-------
@@ -50,17 +27,22 @@ def stdevp(a):
 	>>> stdevp(data)
 	0.816496580927726
 
+	>>> stdevp(-1,0,1)
+	0.816496580927726
+
 	"""
+	a = args_to_array(args)
 	return np.std(a, ddof=0)
 
-def varp(a):
+def varp(*args):
 	"""
 	Computes the population variance, or VARP().
 
 	Parameters
 	----------
-	a : array_like
-	    Input data.
+	args : array_like or numeric scalars
+	    Input data. This can be a single array-like object or individual numbers.
+	    Both varp([1,2]) and varp(1,2) are valid.
 
 	Returns
 	-------
@@ -73,17 +55,22 @@ def varp(a):
 	>>> varp(data)
 	0.6666666666666666
 
+	>>> varp(-1,0,1)
+	0.6666666666666666
+
 	"""
+	a = args_to_array(args)
 	return np.var(a, ddof=0)
 
-def stdev(a):
+def stdev(*args):
 	"""
 	Computes the sample standard deviation, or STDEV().
 
 	Parameters
 	----------
-	a : array_like
-	    Input data.
+	args : array_like or numeric scalars
+	    Input data. This can be a single array-like object or individual numbers.
+	    Both stdev([1,2]) and stdev(1,2) are valid.
 
 	Returns
 	-------
@@ -95,18 +82,23 @@ def stdev(a):
 	>>> data = [-1, 0, 1]
 	>>> stdev(data)
 	1.0
-
+	
+	>>> stdev(-1,0,1)
+	1.0
+	
 	"""
+	a = args_to_array(args)
 	return np.std(a, ddof=1)
 
-def var(a):
+def var(*args):
 	"""
 	Computes the sample variance, or VAR().
 
 	Parameters
 	----------
-	a : array_like
-	    Input data.
+	args : array_like or numeric scalars
+	    Input data. This can be a single array-like object or individual numbers.
+	    Both var([1,2]) and var(1,2) are valid.
 
 	Returns
 	-------
@@ -119,7 +111,11 @@ def var(a):
 	>>> var(data)
 	1.0
 
+	>>> var(-1,0,1)
+	1.0
+
 	"""
+	a = args_to_array(args)
 	return np.var(a, ddof=1)
 
 def change_df_std():

@@ -13,6 +13,7 @@ class TestStd(unittest.TestCase):
 		self.assertFalse(sd_ == 1)
 		apply_pd_changes()
 		self.assertTrue(self.df.col1.sd() == sd_)
+		self.assertTrue(sd_ == sd(*self.numbers))
 
 	def tearDown(self):
 		pass
