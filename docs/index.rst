@@ -6,6 +6,10 @@
 Welcome to StatWrap's documentation!
 ====================================
 
+This is a package meant for intro stats students who are also new to Python, or at least its statistical libraries.
+
+Find the source code on `GitHub <https://github.com/alexanderthclark/statwrap>`_. 
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
