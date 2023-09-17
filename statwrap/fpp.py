@@ -6,6 +6,55 @@ import pandas as pd
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array
 
+def average(*args):
+	"""
+    Computes the arithmetic mean.
+
+    Parameters:
+    -----------
+    args : array_like or numeric scalars
+        Input data. This can be a single array-like object or individual numbers.
+        Both average([1,2]) and average(1,2) are valid.
+    
+    Returns:
+    --------
+    float
+        The average value, or arithmetic mean, for a collection of numbers.
+
+    Example:
+    --------
+    >>> average(0, 5, -8, 7, -3)
+    0.2
+
+	"""
+	a = args_to_array(args)
+	return np.mean(a)
+
+def rms_size(*args):
+	"""
+    Computes the r.m.s. (Root Mean Square) size of a list of numbers.
+
+    Parameters:
+    -----------
+    args : array_like or numeric scalars
+        Input data. This can be a single array-like object or individual numbers.
+        Both rms_size([1,2]) and rms_size(1,2) are valid.
+    
+    Returns:
+    --------
+    float
+        The r.m.s. value of the provided numbers.
+
+    Example:
+    --------
+    >>> rms_size(0, 5, -8, 7, -3)
+    5.422176684690384
+
+	"""
+	a = args_to_array(args)
+	squared = [r**2 for r in a]
+	return np.sqrt(np.mean(squared))
+
 def sd(*args):
     """
     Computes the population standard deviation, or SD.
