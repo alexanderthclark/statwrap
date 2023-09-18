@@ -13,13 +13,13 @@ def stdevp(*args):
 	Parameters
 	----------
 	args : array_like or numeric scalars
-	    Input data. This can be a single array-like object or individual numbers.
-	    Both stdevp([1,2]) and stdevp(1,2) are valid.
+		Input data. This can be a single array-like object or individual numbers.
+		Both stdevp([1,2]) and stdevp(1,2) are valid.
 
 	Returns
 	-------
 	float
-	    Population standard deviation of the input data.
+		Population standard deviation of the input data.
 
 	Examples
 	--------
@@ -41,13 +41,13 @@ def varp(*args):
 	Parameters
 	----------
 	args : array_like or numeric scalars
-	    Input data. This can be a single array-like object or individual numbers.
-	    Both varp([1,2]) and varp(1,2) are valid.
+		Input data. This can be a single array-like object or individual numbers.
+		Both varp([1,2]) and varp(1,2) are valid.
 
 	Returns
 	-------
 	float
-	    Population variance of the input data.
+		Population variance of the input data.
 
 	Examples
 	--------
@@ -69,13 +69,13 @@ def stdev(*args):
 	Parameters
 	----------
 	args : array_like or numeric scalars
-	    Input data. This can be a single array-like object or individual numbers.
-	    Both stdev([1,2]) and stdev(1,2) are valid.
+		Input data. This can be a single array-like object or individual numbers.
+		Both stdev([1,2]) and stdev(1,2) are valid.
 
 	Returns
 	-------
 	float
-	    Sample standard deviation of the input data.
+		Sample standard deviation of the input data.
 
 	Examples
 	--------
@@ -97,13 +97,13 @@ def var(*args):
 	Parameters
 	----------
 	args : array_like or numeric scalars
-	    Input data. This can be a single array-like object or individual numbers.
-	    Both var([1,2]) and var(1,2) are valid.
+		Input data. This can be a single array-like object or individual numbers.
+		Both var([1,2]) and var(1,2) are valid.
 
 	Returns
 	-------
 	float
-	    Sample variance of the input data.
+		Sample variance of the input data.
 
 	Examples
 	--------
