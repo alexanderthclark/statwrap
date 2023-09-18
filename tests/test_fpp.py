@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+import matplotlib.pyplot as plt
 from statwrap.fpp import apply_pd_changes, sd
 
 class TestStd(unittest.TestCase):
