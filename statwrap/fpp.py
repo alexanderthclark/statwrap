@@ -175,7 +175,7 @@ def apply_pd_changes():
     change_std_behavior(pd.DataFrame)
     change_std_behavior(pd.Series)
 
-def histogram(x, bins=None, density=False, xlim=None, ylim=None, 
+def histogram(x, bins=None, density=True, xlim=None, ylim=None, 
               ax=None, show=True, save_as=None, xlabel=None, 
               ylabel=None, title=None, **kwargs):
     '''
