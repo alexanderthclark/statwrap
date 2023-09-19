@@ -3,9 +3,15 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+def get_version():
+    with open("statwrap/__init__.py", "r") as f:
+        for line in f:
+            if line.startswith("__version__"):
+                return eval(line.split("=")[-1].strip())
+
 setuptools.setup(
     name='StatWrap',
-    version='0.1.4',
+    version=get_version(),
     description='A package for people new to statistics and Python.',
     long_description=long_description,  # This is the new line
     long_description_content_type="text/markdown",  # This is the new line
