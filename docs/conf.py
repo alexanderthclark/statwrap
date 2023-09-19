@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'StatWrap'
 copyright = '2023, Alexander Clark'
 author = 'Alexander Clark'
-release = '0.1.3'
+release = '0.1.4'
 
 # -- General configuration ---------------------------------------------------
 
