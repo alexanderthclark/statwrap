@@ -175,7 +175,9 @@ def apply_pd_changes():
     change_std_behavior(pd.DataFrame)
     change_std_behavior(pd.Series)
 
-def histogram(x, bins=None, density=False, xlim=None, ylim=None, ax=None, show=True, save_as=None, **kwargs):
+def histogram(x, bins=None, density=False, xlim=None, ylim=None, 
+              ax=None, show=True, save_as=None, xlabel=None, 
+              ylabel=None, title=None, **kwargs):
     '''
     Creates a histogram using matplotlib.
 
@@ -205,6 +207,15 @@ def histogram(x, bins=None, density=False, xlim=None, ylim=None, ax=None, show=T
     save_as : str, optional
         If a string is provided, the figure is saved with the given filename.
         This must include an extension like '.png' or '.pdf'.
+
+    xlabel : str, optional
+        Label for the x-axis.
+
+    ylabel : str, optional
+        Label for the y-axis.
+
+    title : str, optional
+        Title for the histogram plot.
 
     kwargs : dict
         Additional keyword arguments to pass to `ax.hist`.
@@ -237,6 +248,12 @@ def histogram(x, bins=None, density=False, xlim=None, ylim=None, ax=None, show=T
         ax.set_xlim(xlim)
     if ylim is not None:
         ax.set_ylim(ylim)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
+    if title is not None:
+        ax.set_title(title)
 
     if save_as is not None:
         plt.savefig(save_as)
