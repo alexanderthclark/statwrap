@@ -11,18 +11,18 @@ def average(*args):
 	"""
     Computes the arithmetic mean.
 
-    Parameters:
+    Parameters
     -----------
     args : array_like or numeric scalars
         Input data. This can be a single array-like object or individual numbers.
         Both average([1,2]) and average(1,2) are valid.
 
-    Returns:
+    Returns
     --------
     float
         The average value, or arithmetic mean, for a collection of numbers.
 
-    Example:
+    Example
     --------
     >>> average(0, 5, -8, 7, -3)
     0.2
@@ -35,18 +35,18 @@ def rms_size(*args):
 	"""
     Computes the r.m.s. (Root Mean Square) size of a list of numbers.
 
-    Parameters:
+    Parameters
     -----------
     args : array_like or numeric scalars
         Input data. This can be a single array-like object or individual numbers.
         Both rms_size([1,2]) and rms_size(1,2) are valid.
 
-    Returns:
+    Returns
     --------
     float
         The r.m.s. value of the provided numbers.
 
-    Example:
+    Example
     --------
     >>> rms_size(0, 5, -8, 7, -3)
     5.422176684690384
@@ -179,7 +179,7 @@ def histogram(x, bins=None, density=False, xlim=None, ylim=None, ax=None, show=T
     '''
     Creates a histogram using matplotlib.
 
-    Parameters:
+    Parameters
     ----------
     x : array-like or sequence or array-likes
         Input data to be plotted as a histogram.
@@ -209,12 +209,12 @@ def histogram(x, bins=None, density=False, xlim=None, ylim=None, ax=None, show=T
     kwargs : dict
         Additional keyword arguments to pass to `ax.hist`.
 
-    Returns:
+    Returns
     -------
     fig, ax : tuple
         A tuple containing the figure and axis objects. Only returned if `show` is False.
 
-    Example:
+    Example
     --------
     >>> histogram([1,2,3,3,3], save_as = 'example.png')
     (histogram will appear in notebook output)
