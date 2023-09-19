@@ -214,10 +214,11 @@ def histogram(x, bins=None, density=False, xlim=None, ylim=None, ax=None, show=T
     fig, ax : tuple
         A tuple containing the figure and axis objects. Only returned if `show` is False.
 
-    Examples
+    Example:
     --------
     >>> histogram([1,2,3,3,3], save_as = 'example.png')
     (histogram will appear in notebook output)
+    
     '''
     if ax is None:
         fig, ax = plt.figure(), plt.axes()
