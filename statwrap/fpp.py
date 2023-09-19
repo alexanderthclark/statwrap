@@ -260,7 +260,7 @@ def histogram(x, bins=None, density=True, xlim=None, ylim=None,
     if show:
         plt.show()
     else:
-        return fig, ax
+        return plt.gcf(), ax  # use gcf in case ax is passed in call
 
 def fpp_setup():
     apply_pd_changes()
