@@ -4,3 +4,5 @@ try:
     from .core import use_sheets
 except NameError:
     pass
+
+__version__ = '0.1.4dev'
