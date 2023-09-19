@@ -175,7 +175,7 @@ def apply_pd_changes():
     change_std_behavior(pd.DataFrame)
     change_std_behavior(pd.Series)
 
-def histogram(x, bins=None, density=True, xlim=None, ylim=None, 
+def histogram(*data_args, bins=None, density=True, xlim=None, ylim=None, 
               ax=None, show=True, save_as=None, xlabel=None, 
               ylabel=None, title=None, **kwargs):
     '''
@@ -183,7 +183,7 @@ def histogram(x, bins=None, density=True, xlim=None, ylim=None,
 
     Parameters
     ----------
-    x : array-like or sequence or array-likes
+    data_args : array-like or sequence or array-likes or numeric scalars
         Input data to be plotted as a histogram.
 
     bins : int or sequence, optional
@@ -230,6 +230,14 @@ def histogram(x, bins=None, density=True, xlim=None, ylim=None,
     >>> histogram([1,2,3,3,3], save_as = 'example.png')
     (histogram will appear in notebook output)
 
+    >>> histogram(1,2,3,3,3, save_as = 'example.png')
+    (alternate syntax producing the same histogram as above)
+
+    >>> histogram([(1,2), (1,1,1,1)], title = 'Example')
+    (overlapping histograms with two data sets)
+
+    >>> histogram((1,2), (1,1,1,1), title = 'Example')
+    (alternate syntax for overlapping histograms with two data sets)
     '''
     if ax is None:
         fig, ax = plt.figure(), plt.axes()
@@ -242,6 +250,7 @@ def histogram(x, bins=None, density=True, xlim=None, ylim=None,
     if ('edgecolor' not in kwargs) and ('ec' not in kwargs):
             kwargs['ec'] = 'black'
 
+    x = args_to_array(data_args)
     ax.hist(x, **kwargs)
 
     if xlim is not None:
