@@ -29,7 +29,8 @@ release = get_version()
 
 extensions = [
     'sphinx.ext.autodoc',  # Generate docs from docstrings
-    'sphinx.ext.napoleon'  # Support for NumPy and Google style docstrings
+    'sphinx.ext.napoleon',  # Support for NumPy and Google style docstrings
+    'sphinx.ext.mathjax'
 ]
 
 templates_path = ['_templates']

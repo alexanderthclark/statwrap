@@ -18,6 +18,7 @@ class Formula:
         '''
         self.func = func
         functools.update_wrapper(self, func)
+        self.__doc__ = func.__doc__
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
@@ -38,6 +39,33 @@ class Formula:
                 break
 
         return f"$$ {latex} $$"
+
+def formula(func):
+    """
+    Decorator to modify the display behavior of functions with a mathematical formula.
+    The function should have its formula inside a math block in its docstring.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    
+    def _repr_latex_(self):
+        lines = func.__doc__.splitlines()
+        start = False
+
+        # this supports only one-line formulas
+        for line in lines:
+            if '.. math::' in line:
+                start = True
+            elif start:
+                latex = line.strip()
+                break
+
+        return f"$$ {latex} $$"
+    
+    setattr(wrapper, "_repr_latex_", _repr_latex_)
+
+    return wrapper
 
 def args_to_array(args):
     """
