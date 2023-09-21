@@ -49,7 +49,7 @@ def formula(func):
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
     
-    def _repr_latex_(self):
+    def _repr_latex_():
         lines = func.__doc__.splitlines()
         start = False
 
