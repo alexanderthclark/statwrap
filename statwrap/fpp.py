@@ -5,15 +5,19 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std, args_to_array
+from statwrap.utils import modify_std, args_to_array, Formula
 
+@Formula
 def average(*args):
 	"""
     Computes the arithmetic mean.
 
+    .. math::
+       \\frac{1}{n} \\sum_{i=1}^{n} x_i
+
     Parameters
     -----------
-    args : array_like or numeric scalars
+    args : array_like  or numeric scalars
         Input data. This can be a single array-like object or individual numbers.
         Both average([1,2]) and average(1,2) are valid.
 
@@ -31,9 +35,13 @@ def average(*args):
 	a = args_to_array(args)
 	return np.mean(a)
 
+@Formula
 def rms_size(*args):
 	"""
     Computes the r.m.s. (Root Mean Square) size of a list of numbers.
+
+    .. math::
+       \\sqrt{ \\frac{1}{n}\\sum_{i=1}^{n}x_i^2 }
 
     Parameters
     -----------
@@ -56,9 +64,13 @@ def rms_size(*args):
 	squared = [r**2 for r in a]
 	return np.sqrt(np.mean(squared))
 
+@Formula
 def sd(*args):
     """
     Computes the population standard deviation, or SD.
+
+    .. math::
+       \\sqrt{ \\frac{1}{n}\\sum_{i=1}^{n}(x_i-\mu)^2 }
 
     Parameters
     ----------
@@ -83,9 +95,13 @@ def sd(*args):
     a = args_to_array(args)
     return np.std(a, ddof=0)
 
+@Formula
 def var(*args):
     """
     Computes the population variance.
+
+    .. math::
+       \\frac{1}{n}\\sum_{i=1}^{n}(x_i-\mu)^2
 
     Parameters
     ----------
@@ -110,9 +126,13 @@ def var(*args):
     a = args_to_array(args)
     return np.var(a, ddof=0)
 
+@Formula
 def sd_plus(*args):
     """
     Computes the sample standard deviation, or SD+.
+
+    .. math::
+       \\sqrt{ \\frac{1}{n-1}\\sum_{i=1}^{n}(x_i-\\bar{x})^2 }
 
     Parameters
     ----------
@@ -137,9 +157,13 @@ def sd_plus(*args):
     a = args_to_array(args)
     return np.std(a, ddof=1)
 
+@Formula
 def var_plus(*args):
     """
     Computes the sample variance.
+
+    .. math::
+       \\frac{1}{n-1}\\sum_{i=1}^{n}(x_i-\\bar{x})^2
 
     Parameters
     ----------
