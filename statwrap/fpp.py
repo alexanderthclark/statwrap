@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std, args_to_array, Formula
+from statwrap.utils import modify_std, args_to_array, formula
 
-@Formula
+@formula
 def average(*args):
 	"""
     Computes the arithmetic mean.
@@ -35,7 +35,7 @@ def average(*args):
 	a = args_to_array(args)
 	return np.mean(a)
 
-@Formula
+@formula
 def rms_size(*args):
 	"""
     Computes the r.m.s. (Root Mean Square) size of a list of numbers.
@@ -64,7 +64,7 @@ def rms_size(*args):
 	squared = [r**2 for r in a]
 	return np.sqrt(np.mean(squared))
 
-@Formula
+@formula
 def sd(*args):
     """
     Computes the population standard deviation, or SD.
@@ -95,7 +95,7 @@ def sd(*args):
     a = args_to_array(args)
     return np.std(a, ddof=0)
 
-@Formula
+@formula
 def var(*args):
     """
     Computes the population variance.
@@ -126,7 +126,7 @@ def var(*args):
     a = args_to_array(args)
     return np.var(a, ddof=0)
 
-@Formula
+@formula
 def sd_plus(*args):
     """
     Computes the sample standard deviation, or SD+.
@@ -157,7 +157,7 @@ def sd_plus(*args):
     a = args_to_array(args)
     return np.std(a, ddof=1)
 
-@Formula
+@formula
 def var_plus(*args):
     """
     Computes the sample variance.
@@ -249,7 +249,7 @@ def histogram(*data_args, bins=None, density=True, xlim=None, ylim=None,
     fig, ax : tuple
         A tuple containing the figure and axis objects. Only returned if `show` is False.
 
-    Example
+    Examples
     --------
     >>> histogram([1,2,3,3,3], save_as = 'example.png')
     (histogram will appear in notebook output)
