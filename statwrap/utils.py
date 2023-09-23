@@ -94,7 +94,7 @@ def hyperlink(func):
     def _repr_html_():
         link_text, hyperlink = find_first_external_link(func.__doc__)
         if hyperlink:
-            return f"<a href='{hyperlink}'>{link_text}</a>"
+            return f"<a href='{hyperlink}' target='_blank'>{link_text}</a>"
         else:
             return ""
     
