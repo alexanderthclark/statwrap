@@ -6,9 +6,36 @@ import pandas as pd
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array
 
+def average(*args):
+	"""
+    Computes the arithmetic mean, or `AVERAGE() <https://support.google.com/docs/answer/3093615?sjid=720707396607486715>`.
+
+    .. math::
+       \\frac{1}{n} \\sum_{i=1}^{n} x_i
+
+    Parameters
+    -----------
+    args : array_like  or numeric scalars
+        Input data. This can be a single array-like object or individual numbers.
+        Both average([1,2]) and average(1,2) are valid.
+
+    Returns
+    --------
+    float
+        The average value, or arithmetic mean, for a collection of numbers.
+
+    Example
+    --------
+    >>> average(0, 5, -8, 7, -3)
+    0.2
+
+	"""
+	a = args_to_array(args)
+	return np.mean(a)
+
 def stdevp(*args):
 	"""
-	Computes the population standard deviation, or STDEVP().
+	Computes the population standard deviation, or `STDEVP() <https://support.google.com/docs/answer/3094105?hl=en&sjid=17542111072464572565>`.
 
 	Parameters
 	----------
