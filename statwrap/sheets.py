@@ -3,6 +3,7 @@ Stats functions adapted to the conventions of Google Sheets.
 '''
 import numpy as np
 import pandas as pd
+import scipy.stats as stats
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, hyperlink
 
