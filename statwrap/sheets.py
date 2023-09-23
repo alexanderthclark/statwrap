@@ -35,6 +35,7 @@ def correl(x, y):
     """
     return np.corrcoef(x,y)[0][1]
 
+@hyperlink
 def average(*args):
     """
     Computes the arithmetic mean, or `AVERAGE() <https://support.google.com/docs/answer/3093615?sjid=720707396607486715>`_.
@@ -62,6 +63,7 @@ def average(*args):
     a = args_to_array(args)
     return np.mean(a)
 
+@hyperlink
 def stdevp(*args):
     """
     Computes the population standard deviation, or `STDEVP() <https://support.google.com/docs/answer/3094105?hl=en&sjid=17542111072464572565>`_.
@@ -90,6 +92,7 @@ def stdevp(*args):
     a = args_to_array(args)
     return np.std(a, ddof=0)
 
+@hyperlink
 def varp(*args):
     """
     Computes the population variance, or `VARP() <https://support.google.com/docs/answer/3094113?hl=en&sjid=5413125246869058878>`_.
@@ -118,6 +121,7 @@ def varp(*args):
     a = args_to_array(args)
     return np.var(a, ddof=0)
 
+@hyperlink
 def stdev(*args):
     """
     Computes the sample standard deviation, or `STDEV() <https://support.google.com/docs/answer/3094054?hl=en&sjid=5413125246869058878>`_.
@@ -146,6 +150,7 @@ def stdev(*args):
     a = args_to_array(args)
     return np.std(a, ddof=1)
 
+@hyperlink
 def var(*args):
     """
     Computes the sample variance, or `VAR() <https://support.google.com/docs/answer/3094063?hl=en&sjid=5413125246869058878>`_.
