@@ -4,8 +4,9 @@ Stats functions adapted to the conventions of Google Sheets.
 import numpy as np
 import pandas as pd
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std, args_to_array
+from statwrap.utils import modify_std, args_to_array, hyperlink
 
+@hyperlink
 def correl(x, y):
     """
     Calculates the Pearson correlation coefficient, or `CORREL() <https://support.google.com/docs/answer/3093990?hl=en&ref_topic=3105600&sjid=5413125246869058878>`_.

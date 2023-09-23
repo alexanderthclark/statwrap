@@ -3,6 +3,7 @@ These are utilities agnostic to specific conventions.
 '''
 import numpy as np
 import functools
+import re
 
 class Formula:
     '''
@@ -65,6 +66,40 @@ def formula(func):
     
     setattr(wrapper, "_repr_latex_", _repr_latex_)
 
+    return wrapper
+
+def find_first_external_link(s):
+    """
+    Find the first external link in a string formatted as `LinkText <URL>`.
+
+    Parameters:
+    s (str): The string to search in.
+
+    Returns:
+    (str, str): The first external link text and URL found, or (None, None) if no link is found.
+    """
+    link_pattern = r'`([^`]+) <(https?://[^\s>]+)>`_'
+    match = re.search(link_pattern, s)
+    return match.groups() if match else (None, None)
+
+def hyperlink(func):
+    """
+    Decorator to modify the display behavior of functions with a hyperlink.
+    The function should have its hyperlink inside its docstring.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    
+    def _repr_html_():
+        link_text, hyperlink = find_first_external_link(func.__doc__)
+        if hyperlink:
+            return f"<a href='{hyperlink}'>{link_text}</a>"
+        else:
+            return ""
+    
+    setattr(wrapper, "_repr_html_", _repr_html_)
+    
     return wrapper
 
 def args_to_array(args):
