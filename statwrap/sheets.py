@@ -3,8 +3,50 @@ Stats functions adapted to the conventions of Google Sheets.
 '''
 import numpy as np
 import pandas as pd
+import scipy.stats as stats
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, hyperlink
+
+@hyperlink
+def normdist(x, mean=0, standard_deviation=1, cumulative=True):
+    """
+    Returns the value of the normal probability density function or cumulative distribution function.
+    This mimics `NORMDIST() <https://support.google.com/docs/answer/3094021?hl=en&sjid=1926096259077083635>`_.
+
+    Parameters
+    ----------
+    x : float or array-like
+        The point(s) at which to evaluate the distribution.
+    mean : float, optional
+        The mean of the Normal distribution. Default is 0.
+    standard_deviation : float, optional
+        The standard deviation of the Normal distribution. Default is 1.
+    cumulative : bool, optional
+        Whether to compute the cumulative distribution function (CDF) or the 
+        probability density function (PDF). Default is True (CDF).
+
+    Returns
+    -------
+    float or array-like
+        The value of the Normal distribution at `x`. If `cumulative` is True,
+        returns the CDF value; otherwise, returns the PDF value.
+
+    Examples
+    --------
+    >>> normdist(0, mean=0, standard_deviation=1, cumulative=True)
+    0.8413447460685429
+
+    >>> normdist(0, mean=0, standard_deviation=1, cumulative=False)
+    0.3989422804014327
+
+    >>> normdist([0,1,2])
+    array([0.5       , 0.84134475, 0.97724987])
+
+    """
+    if cumulative:
+        return stats.norm.cdf(x, mean, standard_deviation)
+    else:
+        return stats.norm.pdf(x, mean, standard_deviation)
 
 @hyperlink
 def correl(x, y):
