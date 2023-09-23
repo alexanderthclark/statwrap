@@ -8,6 +8,35 @@ from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, formula
 
 @formula
+def r(x, y):
+    """
+    Calculates the Pearson correlation coefficient.
+
+    .. math::
+       \\frac{\\sum{(x_i - \\bar{x})(y_i - \\bar{y})}}{\\sqrt{\\sum{(x_i - \\bar{x})^2} \\sum{(y_i - \\bar{y})^2}}}
+
+    Parameters
+    ----------
+    x : array_like
+        The first input array.
+
+    y : array_like
+        The second input array.
+
+    Returns
+    --------
+    float
+        The correlation coefficient.
+
+    Example
+    --------
+    >>> r([0,1,1], [2,-9,2])
+    -0.5
+
+    """
+    return np.corrcoef(x,y)[0][1]
+
+@formula
 def average(*args):
 	"""
     Computes the arithmetic mean.
