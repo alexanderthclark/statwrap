@@ -15,6 +15,7 @@ Find the source code on `GitHub <https://github.com/alexanderthclark/statwrap>`_
    :caption: Contents:
 
    modules
+   fpp
 
 Indices and tables
 ==================
