@@ -4,8 +4,22 @@ Stats functions adapted to the conventions of Google Sheets.
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
+import statsmodels.api as sm
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std, args_to_array, hyperlink
+from statwrap.utils import modify_std, args_to_array, hyperlink, Hyperplane
+
+@hyperlink
+def linest(y, x):
+    """
+    Estimates a linear regression.
+    """
+
+    X = sm.add_constant(x)
+    y = np.array(y)
+    params = sm.OLS(y, X).fit().params
+    p = Hyperplane(params)
+    return p
+
 
 @hyperlink
 def normdist(x, mean=0, standard_deviation=1, cumulative=True):
