@@ -14,8 +14,9 @@ Find the source code on `GitHub <https://github.com/alexanderthclark/statwrap>`_
    :maxdepth: 2
    :caption: Contents:
 
-   modules
    fpp
+   sheets
+   modules
 
 Indices and tables
 ==================

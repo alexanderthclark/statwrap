@@ -1,8 +1,7 @@
-fpp Module
+FPP
 ================
 
-Module based on Freedman, Pisani, and Purves
----
+---------------
 
 .. automodule:: statwrap.fpp
    :members:

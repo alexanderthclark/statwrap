@@ -1,17 +1,9 @@
-StatWrap Modules
+Other
 ================
 
-fpp
----
+Other modules
 
-.. automodule:: statwrap.fpp
-   :members:
-
-sheets
-------
-
-.. automodule:: statwrap.sheets
-   :members:
+-------------
 
 core
 ----
