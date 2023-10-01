@@ -149,14 +149,89 @@ def modify_std(original_method):
 
 
 class Hyperplane:
+    """
+    Represents a hyperplane in a multidimensional space.
+
+    This class encapsulates a hyperplane defined by a set of coefficients.
+    The hyperplane is represented by the equation:
+
+        y = c_0 + c_1 * x_1 + c_2 * x_2 + ... + c_n * x_n
+
+    where `c_i` are the coefficients and `x_i` are the variables.
+
+    Parameters
+    ----------
+    *coefficients : float
+        The coefficients defining the hyperplane. `c_0` is the constant term,
+        and `c_1, c_2, ..., c_n` are the coefficients of the variables `x_1, x_2, ..., x_n`.
+
+    Attributes
+    ----------
+    coefficients : ndarray
+        An array holding the coefficients of the hyperplane.
+
+    Examples
+    --------
+    >>> plane = Hyperplane(1, 1, 1)
+    >>> plane(0, 1)
+    2
+
+    """
+
     def __init__(self, *coefficients):
+        """
+        Initializes a new instance of the Hyperplane class.
+
+        Parameters
+        ----------
+        *coefficients : float
+            The coefficients defining the hyperplane.
+        """
         array = args_to_array(coefficients)
         self.coefficients = np.squeeze(np.array(coefficients))
 
     def __call__(self, *args):
+        """
+        Computes the value of the hyperplane for the given variables.
+
+        Parameters
+        ----------
+        *args : float
+            The values of the variables `x_1, x_2, ..., x_n`.
+
+        Returns
+        -------
+        float
+            The value of the hyperplane for the given variables.
+
+        Examples
+        --------
+        >>> plane = Hyperplane(1, 1, 1)
+        >>> plane(0, 1)
+        2
+
+        """
         return self.coefficients[0] + np.dot(self.coefficients[1:], args)
 
     def _repr_latex_(self):
+        """
+        Returns a LaTeX representation of the hyperplane.
+
+        This method is used by IPython for rendering the hyperplane in a
+        Jupyter Notebook.
+
+        Returns
+        -------
+        str
+            A LaTeX string representing the hyperplane.
+
+        Examples
+        --------
+        >>> plane = Hyperplane(1, 2, 4)
+        >>> plane._repr_latex_()
+        '$\\hat{y} = 1 + 2 x_1 + 4 x_2$'
+
+        """
         terms = [f'{self.coefficients[0]:g}']
         for i, coef in enumerate(self.coefficients[1:], 1):
             terms.append(f'{coef:g} x_{i}')
