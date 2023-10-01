@@ -146,3 +146,18 @@ def modify_std(original_method):
             kwargs['ddof'] = 1
         return original_method(self, **kwargs)
     return pop_std, sample_std
+
+
+class Hyperplane:
+    def __init__(self, *coefficients):
+        array = args_to_array(coefficients)
+        self.coefficients = np.squeeze(np.array(coefficients))
+
+    def __call__(self, *args):
+        return self.coefficients[0] + np.dot(self.coefficients[1:], args)
+
+    def _repr_latex_(self):
+        terms = [f'{self.coefficients[0]:g}']
+        for i, coef in enumerate(self.coefficients[1:], 1):
+            terms.append(f'{coef:g} x_{i}')
+        return r'$\hat{y} = ' + ' + '.join(terms) + "$"
