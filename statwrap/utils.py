@@ -152,12 +152,13 @@ class Hyperplane:
     """
     Represents a hyperplane in a multidimensional space.
 
-    This class encapsulates a hyperplane defined by a set of coefficients.
-    The hyperplane is represented by the equation:
+    The hyperplane is represented by the equation form:
 
-        y = c_0 + c_1 * x_1 + c_2 * x_2 + ... + c_n * x_n
+    .. math::
 
-    where `c_i` are the coefficients and `x_i` are the variables.
+        y = c_0 + c_1 x_1 + c_2 x_2 + \ldots + c_n x_n
+
+    where `c_i` are the coefficients and `x_i` are the independent variables.
 
     Parameters
     ----------
