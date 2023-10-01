@@ -11,7 +11,38 @@ from statwrap.utils import modify_std, args_to_array, hyperlink, Hyperplane
 @hyperlink
 def linest(y, x):
     """
-    Estimates a linear regression.
+    Estimates a linear regression, like `LINEST() <https://support.google.com/docs/answer/3094249?hl=en>`_.
+    
+    This function performs a simple OLS (Ordinary Least Squares) regression
+    on the provided input data to estimate the coefficients of a linear model.
+    It returns a `Hyperplane` object representing the estimated linear model, 
+    which can be used to compute the predicted values of the dependent variable.
+
+    Parameters
+    ----------
+    y : array-like
+        The dependent variable values. Should be a 1-dimensional array or list.
+    x : array-like
+        The independent variable values. Should be a list or a 2-dimensional array
+        where each column represents a different variable.
+
+    Returns
+    -------
+    Hyperplane
+        An object representing the estimated linear model. The coefficients 
+        of the model are stored in the `coefficients` attribute of the 
+        returned object, and the model can be called as a function to compute
+        predicted values.
+
+    Examples
+    --------
+    >>> y = [1, 2, 3, 4, 5]
+    >>> x = [3, 4, 5, 6, 7]
+    >>> model = linest(y, x)
+    >>> model.coefficients
+    array([-2., 1.])
+    >>> model(10)  # prediction
+    8
     """
 
     X = sm.add_constant(x)
