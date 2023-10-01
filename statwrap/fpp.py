@@ -7,6 +7,89 @@ import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, formula
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+def scatter_plot(x, y, xlim=None, ylim=None, 
+              ax=None, show=True, save_as=None, xlabel=None, 
+              ylabel=None, title=None, regression_line=False, **kwargs):
+    """
+    Create a scatter plot of `x` versus `y`, with specified axis labels, limits, title, and other properties.
+    Optionally, a regression line can be added to the plot.
+
+    Parameters
+    ----------
+    x : array-like
+        The data values for the x-axis.
+    y : array-like
+        The data values for the y-axis.
+    xlim : tuple, optional
+        The limits for the x-axis in the form of (xmin, xmax). Default is None.
+    ylim : tuple, optional
+        The limits for the y-axis in the form of (ymin, ymax). Default is None.
+    ax : matplotlib.axes._axes.Axes, optional
+        The axes upon which to plot. If None, new axes will be created. Default is None.
+    show : bool, optional
+        If True, display the plot. If False, return the plot object without displaying it. Default is True.
+    save_as : str, optional
+        The filename (with path) to save the figure. If None, the figure is not saved. Default is None.
+    xlabel : str, optional
+        The label for the x-axis. Default is None.
+    ylabel : str, optional
+        The label for the y-axis. Default is None.
+    title : str, optional
+        The title of the plot. Default is None.
+    regression_line : bool, optional
+        If True, a regression line will be added to the plot. Default is False.
+    **kwargs : dict
+        Additional keyword arguments passed to `matplotlib.pyplot.scatter`.
+
+    Returns
+    -------
+    fig, ax : matplotlib.figure.Figure, matplotlib.axes._axes.Axes
+        The figure and axes objects, returned only if `show` is False.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> x = np.random.rand(50)
+    >>> y = np.random.rand(50)
+    >>> scatter_plot(x, y, xlabel='X-axis', ylabel='Y-axis', title='Scatter Plot', regression_line=True)
+
+    Notes
+    -----
+    If both `ax` and `show` are None, a new figure and axes will be created and displayed.
+    """
+    if ax is None:
+        fig, ax = plt.figure(), plt.axes()
+
+    if ('alpha' not in kwargs) and (len(x) > 100):
+            kwargs['alpha'] = 0.5
+
+    ax.scatter(x, y, **kwargs)
+
+    if regression_line:
+        m, b = np.polyfit(x, y, 1)  # Calculating the slope (m) and intercept (b) of the regression line
+        ax.plot(x, m*x + b, color='gray')  # Plotting the regression line
+
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    if ylim is not None:
+        ax.set_ylim(ylim)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
+    if title is not None:
+        ax.set_title(title)
+
+    if save_as is not None:
+        plt.savefig(save_as)
+    if show:
+        plt.show()
+    else:
+        return plt.gcf(), ax  # use gcf in case ax is passed in call
+
 @formula
 def r(x, y):
     """
