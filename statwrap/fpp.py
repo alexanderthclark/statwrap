@@ -7,9 +7,6 @@ import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, formula
 
-import numpy as np
-import matplotlib.pyplot as plt
-
 def scatter_plot(x, y, xlim=None, ylim=None, 
               ax=None, show=True, save_as=None, xlabel=None, 
               ylabel=None, title=None, regression_line=False, **kwargs):
