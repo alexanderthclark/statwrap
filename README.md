@@ -20,3 +20,8 @@ import statwrap
 Python is known for its simplicity and readability. Still, someone new to statistics and programming might find themselves intimidated by the many imports necessary to work with data and run statistical tests. A user will find conflicting defaults across different packages and terminology can differ. This package aims to reduce the mental overhead required to juggle the notation they find in a textbook with formula names in Google Sheets and what they find in packages like NumPy, pandas, scipy, and statsmodels. 
 
 The design principles of this package are mostly the design principles of Python. However, we don't always adhere to the principle that "explicit is better than implicit" and we prefer convention to configuration, with the configuration being done once with a magic command like `%use_fpp`. 
+
+
+
+
+If you are interested in using this in your classroom or contributing, please reach out to me at alexander.clark@columbia.edu. 
