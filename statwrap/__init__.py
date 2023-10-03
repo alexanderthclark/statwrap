@@ -5,4 +5,4 @@ try:
 except NameError:
     pass
 
-__version__ = '0.1.12dev'
+__version__ = '0.1.13'
