@@ -63,6 +63,8 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     if ('alpha' not in kwargs) and (len(x) > 100):
             kwargs['alpha'] = 0.5
 
+    x = np.squeeze(np.array(x))
+    y = np.squeeze(np.array(y))
     ax.scatter(x, y, **kwargs)
 
     if regression_line:
