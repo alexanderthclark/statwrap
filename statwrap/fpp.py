@@ -93,7 +93,9 @@ def r(x, y):
     Calculates the Pearson correlation coefficient.
 
     .. math::
-       \\frac{\\sum{(x_i - \\bar{x})(y_i - \\bar{y})}}{\\sqrt{\\sum{(x_i - \\bar{x})^2} \\sum{(y_i - \\bar{y})^2}}}
+       \\frac{1}{n} \\sum_{i=1}^{n} \\dfrac{ (x_i - \\mu_x) (y_i - \\mu_y) }{ \\text{SD}_x \\times \\text{SD}_y }
+
+    This is the average of the product of the z-scores.
 
     Parameters
     ----------
