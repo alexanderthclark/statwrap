@@ -4,6 +4,7 @@ These are utilities agnostic to specific conventions.
 import numpy as np
 import functools
 import re
+import statwrap.fpp as fpp
 
 class Formula:
     '''
@@ -305,3 +306,9 @@ class RegressionLine(Hyperplane):
     def rms_error(self):
         """Returns the Root Mean Square Error of the regression."""
         return self.__rms_error
+
+    def scatter_plot(self, **kwargs):
+        """Shows a scatter plot for the data."""
+        if 'regression_line' not in kwargs:
+            kwargs['regression_line'] = True
+        return fpp.scatter_plot(self.x, self.y, **kwargs)
