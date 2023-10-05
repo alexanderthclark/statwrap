@@ -233,7 +233,7 @@ class Hyperplane:
         '$\\hat{y} = 1 + 2 x_1 + 4 x_2$'
 
         """
-        terms = [f'{self.coefficients[0]:g}']
+        terms = [f'{round(self.coefficients[0],3):g}']
         for i, coef in enumerate(self.coefficients[1:], 1):
             coef = round(coef, 3)
             terms.append(f'{coef:g} x_{i}')
