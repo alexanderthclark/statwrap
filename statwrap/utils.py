@@ -237,3 +237,59 @@ class Hyperplane:
         for i, coef in enumerate(self.coefficients[1:], 1):
             terms.append(f'{coef:g} x_{i}')
         return r'$\hat{y} = ' + ' + '.join(terms) + "$"
+
+class RegressionLine(Hyperplane):
+    """
+    RegressionLine class extends Hyperplane to model a univariate regression line
+    with given coefficients, input values (x), and target values (y).
+
+    Attributes:
+        y (array-like): Target values.
+        x (array-like): Input values.
+        coefficients (tuple): Coefficients for the hyperplane.
+        residuals (array-like): Residuals of the regression.
+        predictions (array-like): Predicted values based on input x.
+        rms_error (float): Root Mean Square Error of the regression.
+    """
+
+    def __init__(self, y, x, *coefficients):
+        """
+        Initializes a RegressionLine instance.
+
+        Args:
+            y (array-like): Target values.
+            x (array-like): Input values.
+            coefficients (tuple): Coefficients for the hyperplane.
+        """
+        super().__init__(*coefficients)
+        self.__y = y
+        self.__x = x
+        self.__predictions = self.__call__(self.__x)
+        self.__residuals = self.__y - self.__predictions
+        self.__rms_error = np.sqrt(np.mean(self.__residuals**2))
+
+    @property
+    def y(self):
+        """Returns the target values."""
+        return self.__y
+
+    @property
+    def x(self):
+        """Returns the input values."""
+        return self.__x
+
+    @property
+    def predictions(self):
+        """Returns the predicted values based on input x."""
+        return self.__predictions
+
+    @property
+    def residuals(self):
+        """Returns the residuals of the regression."""
+        return self.__residuals
+
+    @property
+    def rms_error(self):
+        """Returns the Root Mean Square Error of the regression."""
+        return self.__rms_error
+
