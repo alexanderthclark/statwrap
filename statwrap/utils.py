@@ -237,3 +237,18 @@ class Hyperplane:
         for i, coef in enumerate(self.coefficients[1:], 1):
             terms.append(f'{coef:g} x_{i}')
         return r'$\hat{y} = ' + ' + '.join(terms) + "$"
+
+class RegressionLine(Hyperplane):
+
+    def __init__(self, y, x, *coefficients):
+
+        super().__init__(self, *coefficients)
+        self.__y = y
+        self.__x = x
+        self.__predictions = self.__call__(self.__x)
+        self.__residuals = self.__Y - self.__predictions
+        self.__rms_error = np.sqrt(np.mean(self.__residuals**2))
+
+    @property
+    def residuals(self):
+        return self.__residuals
