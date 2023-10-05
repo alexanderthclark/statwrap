@@ -258,7 +258,6 @@ class RegressionLine(Hyperplane):
         Predicted values based on input x.
     rms_error : float
         Root Mean Square Error of the regression.
-
     """
 
     def __init__(self, y, x, *coefficients):

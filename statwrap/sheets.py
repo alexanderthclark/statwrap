@@ -6,17 +6,19 @@ import pandas as pd
 import scipy.stats as stats
 import statsmodels.api as sm
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std, args_to_array, hyperlink, Hyperplane
+from statwrap.utils import modify_std, args_to_array, hyperlink, Hyperplane, RegressionLine
 
 @hyperlink
 def linest(y, x):
     """
-    Estimates a linear regression, like `LINEST() <https://support.google.com/docs/answer/3094249?hl=en>`_.
-    
+    Estimates a linear regression, akin to `LINEST() <https://support.google.com/docs/answer/3094249?hl=en>`_.
+
     This function performs a simple OLS (Ordinary Least Squares) regression
     on the provided input data to estimate the coefficients of a linear model.
-    It returns a `Hyperplane` object representing the estimated linear model, 
-    which can be used to compute the predicted values of the dependent variable.
+    It returns a `Hyperplane` object representing the estimated linear model in
+    the general case, or a `RegressionLine` object in the case of univariate 
+    regression (i.e., when there's only one independent variable), which can 
+    be used to compute the predicted values of the dependent variable.
 
     Parameters
     ----------
@@ -28,11 +30,12 @@ def linest(y, x):
 
     Returns
     -------
-    Hyperplane
+    Hyperplane or RegressionLine
         An object representing the estimated linear model. The coefficients 
         of the model are stored in the `coefficients` attribute of the 
         returned object, and the model can be called as a function to compute
-        predicted values.
+        predicted values. In the case of univariate regression, a 
+        `RegressionLine` object is returned.
 
     Examples
     --------
@@ -49,6 +52,8 @@ def linest(y, x):
     y = np.array(y)
     params = sm.OLS(y, X).fit().params
     p = Hyperplane(params)
+    if len(params) == 2:
+        p = RegressionLine(y, x, params)
     return p
 
 
