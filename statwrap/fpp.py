@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, formula
 
-def box_model(*args, with_replacement = True, draws = 1):
+def box_model(*args, with_replacement = True, draws = 1, random_seed = 91):
     """
     Returns random draws from a box model where each number in the box model
     is equally likely to be drawn.
@@ -23,6 +23,9 @@ def box_model(*args, with_replacement = True, draws = 1):
         where numbers are replaced back into the box after each draw.
     draws : int, optional
         The number of draws to be made from the box. Default is 1.
+    random_seed : int, optional
+        The seed for the random number generator ensuring reproducibility of the
+        random draws. Default is 91.
 
     Returns
     -------
@@ -39,7 +42,8 @@ def box_model(*args, with_replacement = True, draws = 1):
     array([4, 2, 6])
     """
     a = args_to_array(args)
-    X = np.random.choice(a, replace = with_replacement, size = draws)
+    rng = np.random.default_rng(random_seed)
+    X = rng.choice(a, replace = with_replacement, size = draws)
     if draws == 1:
         return X[0]
     else:
