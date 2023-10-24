@@ -26,8 +26,9 @@ def box_model(*args, with_replacement = True, draws = 1):
 
     Returns
     -------
-    ndarray
-        An array of shape (draws,) containing the randomly drawn numbers from the box.
+    single value or list
+        If `draws` is 1, returns a single value from the box. If `draws` is greater than 1,
+        returns a list of length `draws`, containing the randomly drawn numbers from the box.
 
     Examples
     --------
