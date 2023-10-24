@@ -7,8 +7,45 @@ import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, formula
 
-def scatter_plot(x, y, xlim=None, ylim=None, 
-              ax=None, show=True, save_as=None, xlabel=None, 
+def box_model(*args, with_replacement = True, draws = 1):
+    """
+    Returns random draws from a box model where each number in the box model
+    is equally likely to be drawn.
+
+    Parameters
+    ----------
+    *args : tuple or array_like
+        The elements forming the box from which numbers will be drawn.
+        If a single array_like is provided, it will be used as the box model.
+        If multiple values are provided, they should be passed as a flat tuple.
+    with_replacement : bool, optional
+        Specifies whether drawing is done with replacement. Default is True,
+        where numbers are replaced back into the box after each draw.
+    draws : int, optional
+        The number of draws to be made from the box. Default is 1.
+
+    Returns
+    -------
+    ndarray
+        An array of shape (draws,) containing the randomly drawn numbers from the box.
+
+    Examples
+    --------
+    >>> box_model([1,2,3,4,5,6], with_replacement=True, draws=3)
+    array([2, 5, 5])
+
+    >>> box_model((1,2,3,4,5,6), with_replacement=False, draws=3)
+    array([4, 2, 6])
+    """
+    a = args_to_array(args)
+    X = np.random.choice(a, replace = with_replacement, size = draws)
+    if draws == 1:
+        return X[0]
+    else:
+        return X.tolist()
+
+def scatter_plot(x, y, xlim=None, ylim=None,
+              ax=None, show=True, save_as=None, xlabel=None,
               ylabel=None, title=None, regression_line=False, **kwargs):
     """
     Create a scatter plot of `x` versus `y`, with specified axis labels, limits, title, and other properties.
@@ -312,8 +349,8 @@ def apply_pd_changes():
     change_std_behavior(pd.DataFrame)
     change_std_behavior(pd.Series)
 
-def histogram(*data_args, bins=None, density=True, xlim=None, ylim=None, 
-              ax=None, show=True, save_as=None, xlabel=None, 
+def histogram(*data_args, bins=None, density=True, xlim=None, ylim=None,
+              ax=None, show=True, save_as=None, xlabel=None,
               ylabel=None, title=None, **kwargs):
     '''
     Creates a histogram using matplotlib.
