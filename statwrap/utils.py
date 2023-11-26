@@ -4,6 +4,7 @@ These are utilities agnostic to specific conventions.
 import numpy as np
 import functools
 import re
+import pandas as pd
 import statwrap.fpp as fpp
 
 class Formula:
@@ -239,6 +240,16 @@ class Hyperplane:
             coef = round(coef, 3)
             terms.append(f'{coef:g} x_{i}')
         return r'$\hat{y} = ' + ' + '.join(terms) + "$"
+
+    def predict(self, data, add_constant = True, dataframe = True):
+
+        if not isinstance(data, pd.DataFrame):
+            data = pd.DataFrame(data)
+
+        if add_constant:
+            data.insert(0, 'constant', 1)
+
+        return data.to_numpy() @ self.coefficients
 
 
 class RegressionLine(Hyperplane):
