@@ -9,7 +9,7 @@ from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, hyperlink, Hyperplane, RegressionLine
 
 @hyperlink
-def linest(y, x):
+def linest(y, x, verbose = False):
     """
     Estimates a linear regression, akin to `LINEST() <https://support.google.com/docs/answer/3094249?hl=en>`_.
 
@@ -17,8 +17,9 @@ def linest(y, x):
     on the provided input data to estimate the coefficients of a linear model.
     It returns a `Hyperplane` object representing the estimated linear model in
     the general case, or a `RegressionLine` object in the case of univariate 
-    regression (i.e., when there's only one independent variable), which can 
-    be used to compute the predicted values of the dependent variable.
+    regression (i.e., when there's only one independent variable). These objects
+    can be used to compute the predicted values of the dependent variable. If 
+    `verbose` is set to True, it also returns a summary of the regression analysis.
 
     Parameters
     ----------
@@ -27,15 +28,19 @@ def linest(y, x):
     x : array-like
         The independent variable values. Should be a list or a 2-dimensional array
         where each column represents a different variable.
+    verbose : bool, optional
+        If True, returns a detailed summary of the regression analysis along with
+        the model object. Default is False.
 
     Returns
     -------
-    Hyperplane or RegressionLine
+    Hyperplane or RegressionLine, (Optional) Regression Summary
         An object representing the estimated linear model. The coefficients 
         of the model are stored in the `coefficients` attribute of the 
         returned object, and the model can be called as a function to compute
         predicted values. In the case of univariate regression, a 
-        `RegressionLine` object is returned.
+        `RegressionLine` object is returned. If `verbose` is True, also returns
+        a summary of the regression analysis.
 
     Examples
     --------
@@ -46,15 +51,21 @@ def linest(y, x):
     array([-2., 1.])
     >>> model(10)  # prediction
     8
+    >>> model_verbose = linest(y, x, verbose=True)
+    >>> model_verbose[1]  # regression summary
     """
-
     X = sm.add_constant(x)
     y = np.array(y)
-    params = sm.OLS(y, X).fit().params
+    results = sm.OLS(y, X).fit()
+    params = results.params
     p = Hyperplane(params)
     if len(params) == 2:
         p = RegressionLine(y, x, params)
-    return p
+    
+    if verbose:
+        return p, results.summary()
+    else:
+        return p
 
 
 @hyperlink
