@@ -273,7 +273,7 @@ class RegressionLine(Hyperplane):
         Root Mean Square Error of the regression.
     """
 
-    def __init__(self, y, x, *coefficients):
+    def __init__(self, y, x, results):
         """
         Initializes a RegressionLine instance.
 
@@ -286,11 +286,12 @@ class RegressionLine(Hyperplane):
         coefficients : tuple
             Coefficients for the hyperplane.
         """
-        super().__init__(*coefficients)
+        super().__init__(*results.params)
+        self.__results = results
         self.__y = y
         self.__x = x
-        self.__predictions = self.__call__(self.__x)
-        self.__residuals = self.__y - self.__predictions
+        self.__predictions = self.predict(self.__x)
+        self.__residuals = self.__results.resid.round(5)
         self.__rms_error = np.sqrt(np.mean(self.__residuals**2))
 
     @property
@@ -302,7 +303,12 @@ class RegressionLine(Hyperplane):
     def x(self):
         """Returns the input values."""
         return self.__x
-
+   
+    @property
+    def results(self):
+        """Returns the StatsModels results object."""
+        return self.__results
+   
     @property
     def predictions(self):
         """Returns the predicted values based on input x."""
