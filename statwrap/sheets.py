@@ -64,9 +64,6 @@ def linest(y, x, verbose = False):
     X = sm.add_constant(x)
     y = np.array(y)
     results = sm.OLS(y, X).fit()
-    #params = results.params
-    #p = Hyperplane(params)
-    #if len(params) == 2:
     p = RegressionLine(y, x, results)
     
     if verbose:

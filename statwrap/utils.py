@@ -290,8 +290,8 @@ class RegressionLine(Hyperplane):
         self.__results = results
         self.__y = y
         self.__x = x
-        self.__predictions = self.predict(self.__x) #self.__call__(self.__x)
-        self.__residuals = self.__results.resid #self.__y - self.__predictions
+        self.__predictions = self.predict(self.__x)
+        self.__residuals = self.__results.resid.round(5)
         self.__rms_error = np.sqrt(np.mean(self.__residuals**2))
 
     @property
