@@ -309,5 +309,10 @@ def apply_pd_changes():
     change_std_behavior(pd.Series)
 
 def sheets_setup():
-    warnings.filterwarnings("ignore", message="omni_normtest is not valid with less than 8 observations")
+    # silence statsmodels warnings
+    warnings.filterwarnings("ignore",
+                message="omni_normtest is not valid with less than 8 observations")
+    # statsmodels graphics
+    warnings.filterwarnings("ignore", 
+                message="Series.__getitem__ treating keys as positions is deprecated")
     apply_pd_changes()

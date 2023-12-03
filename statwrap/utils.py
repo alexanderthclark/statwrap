@@ -6,6 +6,11 @@ import functools
 import re
 import pandas as pd
 import statwrap.fpp as fpp
+import matplotlib.pyplot as plt
+from statsmodels.graphics.regressionplots import (
+    plot_partregress_grid,
+    plot_fit
+)
 
 class Formula:
     '''
@@ -324,8 +329,26 @@ class RegressionLine(Hyperplane):
         """Returns the Root Mean Square Error of the regression."""
         return self.__rms_error
 
+    def partial_regression_plot(self, show = True):
+        f = plot_partregress_grid(self.results)
+        if show:
+            plt.show()
+        else:
+            return f
+
     def scatter_plot(self, **kwargs):
         """Shows a scatter plot for the data."""
-        if 'regression_line' not in kwargs:
-            kwargs['regression_line'] = True
-        return fpp.scatter_plot(self.x, self.y, **kwargs)
+        if len(self.results.params) == 2:
+            if 'regression_line' not in kwargs:
+                kwargs['regression_line'] = True
+            return fpp.scatter_plot(self.x, self.y, **kwargs)
+        else:
+            #raise Exception("scatter_plot is not supported for multiple linear regression.")
+            tmp = pd.DataFrame(self.x)
+            ncol = len(tmp.columns)
+            fig, axs = plt.subplots(1, ncol, sharey = True)
+            for key, col in enumerate(tmp.columns):
+                x0 = tmp[col]
+                ax = axs[key]
+                fpp.scatter_plot(x0, self.y, ax=ax, show=False)
+            plt.show()
