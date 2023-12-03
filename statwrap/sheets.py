@@ -5,8 +5,15 @@ import numpy as np
 import pandas as pd
 import scipy.stats as stats
 import statsmodels.api as sm
+import warnings
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std, args_to_array, hyperlink, Hyperplane, RegressionLine
+from statwrap.utils import (
+    modify_std, 
+    args_to_array, 
+    hyperlink, 
+    Hyperplane, 
+    RegressionLine, 
+)
 
 @hyperlink
 def linest(y, x, verbose = False):
@@ -305,4 +312,5 @@ def apply_pd_changes():
     change_std_behavior(pd.Series)
 
 def sheets_setup():
+    warnings.filterwarnings("ignore", message="omni_normtest is not valid with less than 8 observations")
     apply_pd_changes()
