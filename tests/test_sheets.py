@@ -1,5 +1,6 @@
 import unittest
 import math
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from statwrap.sheets import linest
