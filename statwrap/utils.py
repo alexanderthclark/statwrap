@@ -339,7 +339,7 @@ class RegressionLine(Hyperplane):
 
     def scatter_plot(self, **kwargs):
         """Shows a scatter plot for the data."""
-        if len(self.results.params) == 2:
+        if False: #len(self.results.params) == 2:
             if 'regression_line' not in kwargs:
                 kwargs['regression_line'] = True
             return fpp.scatter_plot(self.x, self.y, **kwargs)
