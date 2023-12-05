@@ -363,9 +363,9 @@ class RegressionLine(Hyperplane):
         else:
             tmp = pd.DataFrame(self.x)
             ncol = len(tmp.columns)
-            fig, axs = plt.subplots(1, ncol, sharey = True)
+            fig, axs = plt.subplots(1, ncol, sharey = True, squeeze = False)
             for key, col in enumerate(tmp.columns):
                 x0 = tmp[col]
-                ax = axs[key]
+                ax = axs[0, key]
                 fpp.scatter_plot(x0, y, ax=ax, show=False)
             plt.show()
