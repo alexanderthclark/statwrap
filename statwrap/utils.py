@@ -330,6 +330,7 @@ class RegressionLine(Hyperplane):
         return self.__rms_error
 
     def partial_regression_plot(self, show = True):
+        """Shows a partial regression plot for each predictor variable."""
         f = plot_partregress_grid(self.results)
         if show:
             plt.show()
@@ -343,7 +344,6 @@ class RegressionLine(Hyperplane):
                 kwargs['regression_line'] = True
             return fpp.scatter_plot(self.x, self.y, **kwargs)
         else:
-            #raise Exception("scatter_plot is not supported for multiple linear regression.")
             tmp = pd.DataFrame(self.x)
             ncol = len(tmp.columns)
             fig, axs = plt.subplots(1, ncol, sharey = True)
@@ -351,4 +351,21 @@ class RegressionLine(Hyperplane):
                 x0 = tmp[col]
                 ax = axs[key]
                 fpp.scatter_plot(x0, self.y, ax=ax, show=False)
+            plt.show()
+
+    def residual_plot(self, **kwargs):
+        """Shows a scatter plot of x vs the residuals."""
+        y = self.residuals
+        if False: #len(self.results.params) == 2:
+            if 'regression_line' not in kwargs:
+                kwargs['regression_line'] = True
+            return fpp.scatter_plot(self.x, y, **kwargs)
+        else:
+            tmp = pd.DataFrame(self.x)
+            ncol = len(tmp.columns)
+            fig, axs = plt.subplots(1, ncol, sharey = True)
+            for key, col in enumerate(tmp.columns):
+                x0 = tmp[col]
+                ax = axs[key]
+                fpp.scatter_plot(x0, y, ax=ax, show=False)
             plt.show()
