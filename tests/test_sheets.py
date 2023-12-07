@@ -28,7 +28,6 @@ class TestLinest(unittest.TestCase):
 
 		self.assertTrue('ones' in X.columns)
 		self.assertTrue(r.results.params['const'] == r2.results.params['const'])
-		self.assertTrue(False)
 
 	def tearDown(self):
 		pass
