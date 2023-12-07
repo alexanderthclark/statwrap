@@ -19,5 +19,15 @@ class TestLinest(unittest.TestCase):
 		params12 = reg_line12.results.params
 		self.assertTrue(math.isclose(params12[0], 2, abs_tol=10**-6))
 
+	def double_call(self):
+		y = np.random.normal(size = 10)
+		X = pd.DataFrame(np.random.rand(10,2))
+		X['ones'] = 1
+		r, s = linest(y, X, verbose=True)
+		r2, s2 = linest(y, X, verbose=True)
+
+		self.assertTrue('ones' in X.columns)
+		self.assertTrue(r.results.params['const'] == r2.results.params['const'])
+
 	def tearDown(self):
 		pass

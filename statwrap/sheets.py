@@ -61,6 +61,13 @@ def linest(y, x, verbose = False):
     >>> model_verbose = linest(y, x, verbose=True)
     >>> model_verbose[1]  # regression summary
     """
+    try:
+        x = pd.DataFrame(x)
+        for idx, v in x.var().items():
+            if v == 0:
+                del x[idx]
+    except:
+        pass
     X = sm.add_constant(x)
     y = np.array(y)
     results = sm.OLS(y, X).fit()
