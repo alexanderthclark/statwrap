@@ -357,7 +357,7 @@ def apply_pd_changes():
     change_std_behavior(pd.DataFrame)
     change_std_behavior(pd.Series)
 
-def histogram(*data_args, bins=None, density=True, xlim=None, ylim=None,
+def histogram(*data_args, class_intervals=None, bins=None, density=True, xlim=None, ylim=None,
               ax=None, show=True, save_as=None, xlabel=None,
               ylabel=None, title=None, **kwargs):
     '''
@@ -367,9 +367,12 @@ def histogram(*data_args, bins=None, density=True, xlim=None, ylim=None,
     ----------
     data_args : array-like or sequence or array-likes or numeric scalars
         Input data to be plotted as a histogram.
-
+    
+    class_intervals : int or sequence, optional
+        The number of blocks or the interval edges if a sequence is provided. If not provided, defaults are used.
+    
     bins : int or sequence, optional
-        The number of bins or the bin edges if a sequence is provided. If not provided, defaults are used.
+        Alternative name for class_intervals. class_intervals takes precedence is arguments are provided for both.
 
     density : bool, default False
         If True, normalizes the histogram so that the total area is equal to 1.
@@ -425,6 +428,8 @@ def histogram(*data_args, bins=None, density=True, xlim=None, ylim=None,
         fig, ax = plt.figure(), plt.axes()
 
     # Documented parameters
+    if class_intervals is not None:
+        bins = class_intervals
     kwargs['bins'] = bins
     kwargs['density'] = density
 
