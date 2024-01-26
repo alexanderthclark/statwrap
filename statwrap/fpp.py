@@ -451,6 +451,11 @@ def histogram(*data_args, class_intervals=None, bins=None, density=True, xlim=No
     if title is not None:
         ax.set_title(title)
 
+    if density:
+        y_ticks = ax.get_yticks()
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(['{:.0f}%'.format(y*100) for y in y_ticks])
+
     if save_as is not None:
         plt.savefig(save_as)
     if show:
