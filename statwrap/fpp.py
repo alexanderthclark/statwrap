@@ -359,7 +359,7 @@ def apply_pd_changes():
 
 def histogram(*data_args, class_intervals=None, bins=None, density=True, xlim=None, ylim=None,
               ax=None, show=True, save_as=None, xlabel=None,
-              ylabel=None, title=None, **kwargs):
+              ylabel=None, title=None, precision=0, **kwargs):
     '''
     Creates a histogram using matplotlib.
 
@@ -454,8 +454,7 @@ def histogram(*data_args, class_intervals=None, bins=None, density=True, xlim=No
     if density:
         y_ticks = ax.get_yticks()
         ax.set_yticks(y_ticks)
-        ax.set_yticklabels(['{:.0f}%'.format(y*100) for y in y_ticks])
-
+        ax.set_yticklabels([f'{{:.{precision}f}}%'.format(y*100) for y in y_ticks])
     if save_as is not None:
         plt.savefig(save_as)
     if show:
