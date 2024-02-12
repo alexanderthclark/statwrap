@@ -370,3 +370,28 @@ class RegressionLine(Hyperplane):
                 fpp.scatter_plot(x0, y, ax=ax, show=False)
                 ax.axhline(0, color = 'black', lw = 0.5)
             plt.show()
+
+    def plot(self, ax=None, show=True, scatter=True, **kwargs):
+        """Make a plot with regression line. Only works for simple linear regression."""
+
+        if len(self.x.columns) != 2:
+            raise Exception("Unexpected number of columns. simple_plot only works for simple linear regression.")
+        x = self.x.iloc[:,1]
+
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        # get line and scatter plot
+        min_x, max_x = np.min(x), np.max(x)
+        y0, y1 = self.__call__(min_x), self.__call__(max_x)
+        ax.plot([min_x, max_x], [y0, y1], color = 'black')
+        if scatter:
+            if 'alpha' not in kwargs:
+                kwargs['alpha'] = 0.3 if len(x) > 99 else 1
+            if 'color' not in kwargs:
+                color = 'C0'
+            if show == False:
+                kwargs['show'] = False
+            fpp.scatter_plot(x, self.y, ax=ax, **kwargs)
+        if show:
+            plt.show()
