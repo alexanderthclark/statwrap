@@ -316,6 +316,63 @@ def sd_plus(*args):
     return np.std(a, ddof=1)
 
 @formula
+def standard_units(*args, sd_plus=False):
+    """
+    Converts input values to standard units, where standard units indicate the number of
+    standard deviations an element is from the average.
+
+    .. math::
+       \\frac{x-\mu}{\\text{SD}}
+
+    Parameters
+    ----------
+    args : array_like or numeric scalars
+        Input data. This can be a single array-like object containing all data points,
+        or individual numeric scalar values. Examples include standard_units([1, 2, 3])
+        and standard_units(1, 2, 3), both of which are valid.
+    sd_plus : bool, optional
+        Sets the delta degrees of freedom used for numpy.std.
+        Use False for population SD.
+        Use True for sample SD.
+
+    Returns
+    -------
+    list
+        A list of the input data converted to standard units. Each value represents
+        how many standard deviations it is from the dataset's mean.
+
+    Raises
+    ------
+    ValueError
+        If the standard deviation of the input data is zero, indicating that all
+        input values are identical and conversion to standard units is undefined.
+
+    Examples
+    --------
+    >>> standard_units([-1, 0, 1])
+    [-1.224744871391589, 0.0, 1.224744871391589]
+
+    >>> standard_units([1, 1, 1])
+    ValueError: Standard deviation is zero. Standard units are undefined.
+
+    >>> standard_units([1, 6, 100])
+    [-0.761297225001359, -0.651494740626163, 1.4127919656275223]
+
+    >>> standard_units(-100, 0, 1000, 2, 17)
+    [-0.6918327146385096, -0.4480579737510855, 1.9896894351231555, -0.44318247893333707, -0.4066162678002234]
+    """
+    a = args_to_array(args)
+    mean = np.mean(a)
+    ddof = 1 if sd_plus else 0
+    sd = np.std(a, ddof=ddof)
+
+    if sd == 0:
+        raise ValueError("Standard deviation is zero. Standard units are undefined.")
+
+    standard_units = (a - mean) / sd
+    return list(standard_units)
+
+@formula
 def var_plus(*args):
     """
     Computes the sample variance.
