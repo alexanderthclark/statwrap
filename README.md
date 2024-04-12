@@ -21,7 +21,11 @@ Python is known for its simplicity and readability. Still, someone new to statis
 
 The design principles of this package are mostly the design principles of Python. However, we don't always adhere to the principle that "explicit is better than implicit" and we prefer convention to configuration, with the configuration being done once with a magic command like `%use_fpp`. 
 
-
-
-
+# Contribute
 If you are interested in using this in your classroom or contributing, please reach out to me at alexander.clark@columbia.edu. 
+
+
+
+This project is sponsored by [Zulip](https://zulip.com). <br>
+<img src="https://raw.githubusercontent.com/zulip/zulip/32d5b4fe3eae40c3cefcdc29c83074827f6a903f/static/images/logo/zulip-icon-circle.svg" width="30">
+
