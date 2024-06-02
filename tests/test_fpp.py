@@ -40,12 +40,14 @@ class TestAverage(unittest.TestCase):
         self.single_value = [42]
         self.mixed_types = [1, 2.5, 3, 4.5]
 
+    #This passes in a list of numbers
     def test_average_array(self):
         result = average(self.numbers_array)
         expected = 0.2
         self.assertAlmostEqual(result, expected)
 
-    def test_average_multiple_args(self):
+    #This unpacks the list of numbers first
+    def test_average_multiple_args_unpacked(self):
         result = average(*self.numbers_multiple)
         expected = 3.0
         self.assertAlmostEqual(result, expected)
@@ -162,6 +164,10 @@ class TestSDPlus(unittest.TestCase):
         self.mixed_types = [1, 2.5, 3, 4.5]
         self.zeroes = [0, 0, 0, 0]
 
+    def test_sd_plus_division_error(self):
+        with self.assertRaises(ValueError):
+            sd_plus(self.single_value)
+
     def test_sd_plus_array(self):
         result = sd_plus(self.numbers_array)
         expected = 1.0
@@ -224,6 +230,10 @@ class TestVariancePlus(unittest.TestCase):
         result = var_plus(self.numbers_array)
         expected = 1.0
         self.assertAlmostEqual(result, expected)
+        
+    def test_var_plus_division_error(self):
+        with self.assertRaises(ValueError):
+            sd_plus(self.single_value)
 
     def test_var_plus_multiple_args(self):
         result = var_plus(*self.numbers_multiple)
