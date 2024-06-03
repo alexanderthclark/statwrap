@@ -303,6 +303,12 @@ def sd_plus(*args):
     float
         The sample standard deviation of the input array.
 
+    Raises
+    ------
+    ValueError
+        If the input data has one or fewer elements, raising this error prevents
+        division by zero.
+
     Examples
     --------
     >>> sd_plus([-1, 0, 1])
@@ -313,6 +319,9 @@ def sd_plus(*args):
 
     """
     a = args_to_array(args)
+    if len(a) <= 1:
+        raise ValueError("n <= 1, division by zero prohibited")
+    
     return np.std(a, ddof=1)
 
 @formula
@@ -391,6 +400,12 @@ def var_plus(*args):
     float
         The sample variance of the input array.
 
+    Raises
+    ------
+    ValueError
+        If the input data has one or fewer elements, raising this error prevents
+        division by zero.
+
     Examples
     --------
     >>> var_plus([-1, 0, 1])
@@ -401,6 +416,9 @@ def var_plus(*args):
 
     """
     a = args_to_array(args)
+    if len(a) <= 1:
+        raise ValueError("n <= 1, division by zero prohibited")
+    
     return np.var(a, ddof=1)
 
 def change_std_behavior(pd_obj):
