@@ -464,9 +464,6 @@ class DataUpload(BaseUpload):
         '''
         self.supported = {'.csv', '.xlsx'}
         super().__init__(accept=accept, supported=self.supported, **kwargs)
-
-    def debug(self):
-        print(self.value)
         
     def createDF(self):
         file_dict = self.value[0]
