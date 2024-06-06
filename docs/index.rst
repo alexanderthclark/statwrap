@@ -11,11 +11,12 @@ This is a package meant for intro stats students who are also new to Python, or 
 Find the source code on `GitHub <https://github.com/alexanderthclark/statwrap>`_. 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
    fpp
    sheets
+   ux
    modules
 
 Indices and tables
