@@ -22,7 +22,7 @@ class BaseUpload(widgets.FileUpload):
         self.multiple = False
         self.layout = widgets.Layout(width='auto')
         self.supported = supported
-        self.description = f"Upload {self.accept}"
+        self.description = "Upload Data"
         self.validate_accept()
 
     def update_description(self) -> None:
@@ -31,7 +31,7 @@ class BaseUpload(widgets.FileUpload):
 
         :return: None
         '''
-        self.description = f"Upload {self.accept}"
+        self.description = "Upload Data"
         self.validate_accept()
 
     def validate_accept(self) -> None:
@@ -57,16 +57,16 @@ class DataUpload(BaseUpload):
         df = excel_uploader.content()  # if file uploaded
     """
 
-    def __init__(self, accept: str = '.csv,.xlsx', **kwargs: str) -> None:
+    def __init__(self, accept: str = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt', **kwargs: str) -> None:
         '''
         Initialization function for DataUpload class.
         Only reads the first sheet of a multi-sheet excel file.
 
-        :param accept: Comma-separated file type to accept including '.csv', '.xlsx', or '.csv,.xlsx'.
+        :param accept: Comma-separated file type to accept including '.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', or '.odt'.
         :type accept: str
         :return: None
         '''
-        self.supported = {'.csv', '.xlsx'}
+        self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
         super().__init__(accept=accept, supported=self.supported, **kwargs)
         
     def createDF(self):
@@ -83,8 +83,10 @@ class DataUpload(BaseUpload):
         # Read the content into a DataFrame based on the file extension
         if file_extension == 'csv':
             df = pd.read_csv(content_stream)
-        elif file_extension == 'xlsx':
+        elif file_extension in {'xls', 'xlsx', 'xlsm', 'xlsb'}:
             df = pd.read_excel(content_stream)
+        elif file_extension in {'odf', 'ods', 'odt'}:
+            df = pd.read_excel(content_stream, engine='odf')
         else:
             raise ValueError("Unsupported file extension")
 
@@ -110,8 +112,10 @@ class DataUpload(BaseUpload):
         
             if file_extension == '.csv':
                 df = pd.read_csv(content)
-            elif file_extension == '.xlsx':
+            elif file_extension in {'.xls', '.xlsx', '.xlsm', '.xlsb'}:
                 df = pd.read_excel(content)
+            elif file_extension in {'.odf', '.ods', '.odt'}:
+                df = pd.read_excel(content, engine='odf')
             else:
                 raise ValueError("Unsupported file extension")
 
