@@ -16,9 +16,3 @@ utils
 
 .. automodule:: statwrap.utils
    :members:
-
-ux
------
-
-.. automodule:: statwrap.ux
-   :members:
