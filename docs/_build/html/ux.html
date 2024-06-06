@@ -13,7 +13,8 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Other" href="modules.html" />
+    <link rel="next" title="Other" href="modules.html" />
+    <link rel="prev" title="Sheets" href="sheets.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -37,11 +38,13 @@
 <dl class="py class" id="module-statwrap.ux">
 <dt class="sig sig-object py" id="statwrap.ux.BaseUpload">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">statwrap.ux.</span></span><span class="sig-name descname"><span class="pre">BaseUpload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.BaseUpload" title="Link to this definition">¶</a></dt>
-<dd><p>Base class for uploading files. Simplifies behavior of widgets.FileUpload and makes accessing file content easier.</p>
+<dd><p>Base class for uploading files. Simplifies behavior of widgets.FileUpload
+and makes accessing file content easier.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="statwrap.ux.BaseUpload.update_description">
 <span class="sig-name descname"><span class="pre">update_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#statwrap.ux.BaseUpload.update_description" title="Link to this definition">¶</a></dt>
-<dd><p>Update description to specify accepted file types. Use if accept parameter is modified after initialization.</p>
+<dd><p>Updates the description to specify accepted file types. Useful if the
+accept parameter is modified after initialization.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
@@ -52,7 +55,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="statwrap.ux.BaseUpload.validate_accept">
 <span class="sig-name descname"><span class="pre">validate_accept</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#statwrap.ux.BaseUpload.validate_accept" title="Link to this definition">¶</a></dt>
-<dd><p>Validate only accepted file types are included.</p>
+<dd><p>Validates that only supported file types are included.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
@@ -68,8 +71,8 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="statwrap.ux.DataUpload">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">statwrap.ux.</span></span><span class="sig-name descname"><span class="pre">DataUpload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.DataUpload" title="Link to this definition">¶</a></dt>
-<dd><p>Widget for uploading data files and retrieving a pd.DataFrame.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">excel_uploader</span> <span class="o">=</span> <span class="n">DataUpload</span><span class="p">(</span><span class="n">accept</span> <span class="o">=</span> <span class="s1">&#39;.csv,.xlsx&#39;</span><span class="p">)</span>
+<dd><p>Widget for uploading data files and retrieving a pandas DataFrame.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">excel_uploader</span> <span class="o">=</span> <span class="n">DataUpload</span><span class="p">(</span><span class="n">accept</span><span class="o">=</span><span class="s1">&#39;.csv,.xlsx&#39;</span><span class="p">)</span>
 <span class="n">display</span><span class="p">(</span><span class="n">excel_uploader</span><span class="p">)</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">excel_uploader</span><span class="o">.</span><span class="n">content</span><span class="p">()</span>  <span class="c1"># if file uploaded</span>
 </pre></div>
@@ -113,19 +116,27 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="fpp.html">FPP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sheets.html">Sheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Other</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">UX</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#statwrap.ux.BaseUpload"><code class="docutils literal notranslate"><span class="pre">BaseUpload</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#statwrap.ux.DataUpload"><code class="docutils literal notranslate"><span class="pre">DataUpload</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#statwrap.ux.BaseUpload"><code class="docutils literal notranslate"><span class="pre">BaseUpload</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.BaseUpload.update_description"><code class="docutils literal notranslate"><span class="pre">BaseUpload.update_description()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.BaseUpload.validate_accept"><code class="docutils literal notranslate"><span class="pre">BaseUpload.validate_accept()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#statwrap.ux.DataUpload"><code class="docutils literal notranslate"><span class="pre">DataUpload</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUpload.content"><code class="docutils literal notranslate"><span class="pre">DataUpload.content()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Other</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="modules.html" title="previous chapter">Other</a></li>
+      <li>Previous: <a href="sheets.html" title="previous chapter">Sheets</a></li>
+      <li>Next: <a href="modules.html" title="next chapter">Other</a></li>
   </ul></li>
 </ul>
 </div>

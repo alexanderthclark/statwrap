@@ -4,16 +4,20 @@ import pandas as pd
 
 class BaseUpload(widgets.FileUpload):
     """
-    Base class for uploading files. Simplifies behavior of widgets.FileUpload and makes accessing file content easier.
+    Base class for uploading files. Simplifies behavior of widgets.FileUpload 
+    and makes accessing file content easier.
     """
 
     def __init__(self, accept: str, supported: set, **kwargs: str) -> None:
         '''
-        Initialization function for BaseUpload class. It is best not to modify the accept attribute after initialization.
+        Initializes the BaseUpload class. It is recommended not to modify the 
+        accept attribute after initialization.
 
-        :param accept: Comma-separated file types to accept, e.g. '.csv,.xlsx'. Behaves like for widgets.FileUpload.
+        :param accept: Comma-separated list of accepted file types, e.g. '.csv,.xlsx'. 
+                       Works like the accept parameter in widgets.FileUpload.
         :type accept: str
-        :param supported: Set of supported file extensions for accept parameter, {'.csv', '.xlsx'} for example.
+        :param supported: Set of supported file extensions for the accept parameter, 
+                          e.g., {'.csv', '.xlsx'}.
         :type supported: set
         :return: None
         '''
@@ -27,7 +31,8 @@ class BaseUpload(widgets.FileUpload):
 
     def update_description(self) -> None:
         '''
-        Update description to specify accepted file types. Use if accept parameter is modified after initialization.
+        Updates the description to specify accepted file types. Useful if the 
+        accept parameter is modified after initialization.
 
         :return: None
         '''
@@ -36,7 +41,7 @@ class BaseUpload(widgets.FileUpload):
 
     def validate_accept(self) -> None:
         '''
-        Validate only accepted file types are included.
+        Validates that only supported file types are included.
 
         :return: None
         :raises ValueError: If accepted extensions are not a subset of supported extensions.
@@ -48,21 +53,21 @@ class BaseUpload(widgets.FileUpload):
 
 class DataUpload(BaseUpload):
     """
-    Widget for uploading data files and retrieving a pd.DataFrame.
+    Widget for uploading data files and retrieving a pandas DataFrame.
 
     .. code-block:: python
 
-        excel_uploader = DataUpload(accept = '.csv,.xlsx')
+        excel_uploader = DataUpload(accept='.csv,.xlsx')
         display(excel_uploader)
         df = excel_uploader.content()  # if file uploaded
     """
 
     def __init__(self, accept: str = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt', **kwargs: str) -> None:
         '''
-        Initialization function for DataUpload class.
-        Only reads the first sheet of a multi-sheet excel file.
+        Initializes the DataUpload class. Reads only the first sheet of multi-sheet Excel files.
 
-        :param accept: Comma-separated file type to accept including '.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', or '.odt'.
+        :param accept: Comma-separated list of accepted file types including '.csv', '.xls', 
+                       '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', or '.odt'.
         :type accept: str
         :return: None
         '''
