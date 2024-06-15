@@ -2,14 +2,17 @@ import ipywidgets as widgets
 import io
 import pandas as pd
 from IPython.display import display
+from IPython import get_ipython
 
 class DataUploadWidget:
-    def __init__(self, accept: str = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'):
+    def __init__(self, variable_name, accept: str = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'):
         self.accept = accept
         self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
         self.uploader = widgets.FileUpload(accept=accept, multiple=False)
-        self.submit_button = widgets.Button(description="Submit")
-        self.df = None
+        self.submit_button = widgets.Button(description=f"Create DF as \"{variable_name}\"")
+        self.variable_name = variable_name
+
+        self.uploadData()
 
     def createDF(self):
         file_dict = self.uploader.value[0]
@@ -31,8 +34,10 @@ class DataUploadWidget:
 
     def uploadData(self):
         def on_submit(button):
-            self.df = self.createDF()
-            display(self.df.head())
+            df = self.createDF()
+            ipython = get_ipython()
+            ipython.user_global_ns[self.variable_name] = df
+            display(df.head())
         
         self.submit_button.on_click(on_submit)
         
