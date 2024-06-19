@@ -1,5 +1,5 @@
 '''
-Stats functions adapted to the conventions of Freedman, Pisani, and Purves 2007.
+User Interactibility
 '''
 
 import ipywidgets as widgets
