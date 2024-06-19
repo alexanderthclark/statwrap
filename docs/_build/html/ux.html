@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>UX &#8212; StatWrap 0.2.16 documentation</title>
+    <title>User Experience &#8212; StatWrap 0.2.16 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
     <script src="_static/documentation_options.js?v=e2418eca"></script>
@@ -32,15 +32,8 @@
 
           <div class="body" role="main">
             
-  <section id="ux">
-<h1>UX<a class="headerlink" href="#ux" title="Link to this heading">¶</a></h1>
-<section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
-<p>This section covers the user experience aspects of the project.</p>
-</section>
-<hr class="docutils" />
-<section id="module-statwrap.ux">
-<span id="module-documentation"></span><h2>Module Documentation<a class="headerlink" href="#module-statwrap.ux" title="Link to this heading">¶</a></h2>
+  <section id="module-statwrap.ux">
+<span id="user-experience"></span><h1>User Experience<a class="headerlink" href="#module-statwrap.ux" title="Link to this heading">¶</a></h1>
 <p>Stats functions adapted to the conventions of Freedman, Pisani, and Purves 2007.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget">
@@ -50,7 +43,7 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>variable_name</strong> (<em>str</em>) – The name of the variable to store the DataFrame in the IPython environment.</p></li>
-<li><p><strong>accept</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated string of accepted file extensions. Default is ‘.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt’.</p></li>
+<li><p><strong>accept</strong> (<em>str</em><em>, </em><em>optional</em>) – Accepted file extensions, default is ‘.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt’.</p></li>
 <li><p><strong>auto_display</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the widget is displayed immediately upon creation. Default is True.</p></li>
 </ul>
 </dd>
@@ -69,7 +62,7 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.supported">
 <span class="sig-name descname"><span class="pre">supported</span></span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.supported" title="Link to this definition">¶</a></dt>
-<dd><p>Set of supported file extensions.</p>
+<dd><p>Supported file extensions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>set</p>
@@ -134,25 +127,17 @@
 </dd></dl>
 
 <p class="rubric">Examples</p>
-<p>Single DataFrame Usage:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uploader</span> <span class="o">=</span> <span class="n">DataUploadWidget</span><span class="p">(</span><span class="s2">&quot;df&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Multiple DataFrame Usage:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uploader1</span> <span class="o">=</span> <span class="n">DataUploadWidget</span><span class="p">(</span><span class="s2">&quot;df1&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">uploader2</span> <span class="o">=</span> <span class="n">DataUploadWidget</span><span class="p">(</span><span class="s2">&quot;df2&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Delayed Output Usage:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Output</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">output</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">uploader</span> <span class="o">=</span> <span class="n">DataUploadWidget</span><span class="p">(</span><span class="s1">&#39;df3&#39;</span><span class="p">,</span> <span class="n">auto_display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">display</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">display</span><span class="p">(</span><span class="n">uploader</span><span class="o">.</span><span class="n">uploader</span><span class="p">,</span> <span class="n">uploader</span><span class="o">.</span><span class="n">submit_button</span><span class="p">)</span>
-</pre></div>
-</div>
+<p>Single DataFrame Usage:
+&gt;&gt;&gt; uploader = DataUploadWidget(“df”)</p>
+<p>Multiple DataFrame Usage:
+&gt;&gt;&gt; uploader1 = DataUploadWidget(“df1”)
+&gt;&gt;&gt; uploader2 = DataUploadWidget(“df2”)</p>
+<p>Delayed Output Usage:
+&gt;&gt;&gt; output = widgets.Output()
+&gt;&gt;&gt; with output:
+&gt;&gt;&gt;     uploader = DataUploadWidget(‘df3’, auto_display=False)
+&gt;&gt;&gt; display(output)
+&gt;&gt;&gt; display(uploader.uploader, uploader.submit_button)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="id0">
 <span class="sig-name descname"><span class="pre">createDF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
@@ -179,7 +164,6 @@
 </dd></dl>
 
 </section>
-</section>
 
 
           </div>
@@ -202,10 +186,18 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="fpp.html">FPP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sheets.html">Sheets</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">UX</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-statwrap.ux">Module Documentation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget</span></code></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Experience</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#statwrap.ux.DataUploadWidget"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget.accept"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.accept</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget.supported"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.supported</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget.uploader"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.uploader</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget.submit_button"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.submit_button</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget.variable_name"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.variable_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget.auto_display"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.auto_display</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget.createDF"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.createDF()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget.uploadData"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.uploadData()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.createDF()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget.uploadData()</span></code></a></li>
 </ul>
 </li>
 </ul>
