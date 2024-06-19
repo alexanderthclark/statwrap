@@ -34,65 +34,151 @@
             
   <section id="ux">
 <h1>UX<a class="headerlink" href="#ux" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>This section covers the user experience aspects of the project.</p>
+</section>
 <hr class="docutils" />
-<dl class="py class" id="module-statwrap.ux">
-<dt class="sig sig-object py" id="statwrap.ux.BaseUpload">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">statwrap.ux.</span></span><span class="sig-name descname"><span class="pre">BaseUpload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.BaseUpload" title="Link to this definition">¶</a></dt>
-<dd><p>Base class for uploading files. Simplifies behavior of widgets.FileUpload
-and makes accessing file content easier.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="statwrap.ux.BaseUpload.update_description">
-<span class="sig-name descname"><span class="pre">update_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#statwrap.ux.BaseUpload.update_description" title="Link to this definition">¶</a></dt>
-<dd><p>Updates the description to specify accepted file types. Useful if the
-accept parameter is modified after initialization.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="statwrap.ux.BaseUpload.validate_accept">
-<span class="sig-name descname"><span class="pre">validate_accept</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#statwrap.ux.BaseUpload.validate_accept" title="Link to this definition">¶</a></dt>
-<dd><p>Validates that only supported file types are included.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If accepted extensions are not a subset of supported extensions.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<section id="module-statwrap.ux">
+<span id="module-documentation"></span><h2>Module Documentation<a class="headerlink" href="#module-statwrap.ux" title="Link to this heading">¶</a></h2>
+<p>Stats functions adapted to the conventions of Freedman, Pisani, and Purves 2007.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="statwrap.ux.DataUpload">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">statwrap.ux.</span></span><span class="sig-name descname"><span class="pre">DataUpload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.DataUpload" title="Link to this definition">¶</a></dt>
-<dd><p>Widget for uploading data files and retrieving a pandas DataFrame.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">excel_uploader</span> <span class="o">=</span> <span class="n">DataUpload</span><span class="p">(</span><span class="n">accept</span><span class="o">=</span><span class="s1">&#39;.csv,.xlsx&#39;</span><span class="p">)</span>
-<span class="n">display</span><span class="p">(</span><span class="n">excel_uploader</span><span class="p">)</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">excel_uploader</span><span class="o">.</span><span class="n">content</span><span class="p">()</span>  <span class="c1"># if file uploaded</span>
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">statwrap.ux.</span></span><span class="sig-name descname"><span class="pre">DataUploadWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accept</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_display</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.DataUploadWidget" title="Link to this definition">¶</a></dt>
+<dd><p>A widget for uploading data files and creating a pandas DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable_name</strong> (<em>str</em>) – The name of the variable to store the DataFrame in the IPython environment.</p></li>
+<li><p><strong>accept</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated string of accepted file extensions. Default is ‘.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt’.</p></li>
+<li><p><strong>auto_display</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the widget is displayed immediately upon creation. Default is True.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.accept">
+<span class="sig-name descname"><span class="pre">accept</span></span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.accept" title="Link to this definition">¶</a></dt>
+<dd><p>Accepted file extensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.supported">
+<span class="sig-name descname"><span class="pre">supported</span></span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.supported" title="Link to this definition">¶</a></dt>
+<dd><p>Set of supported file extensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.uploader">
+<span class="sig-name descname"><span class="pre">uploader</span></span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.uploader" title="Link to this definition">¶</a></dt>
+<dd><p>File upload widget.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ipywidgets.FileUpload</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.submit_button">
+<span class="sig-name descname"><span class="pre">submit_button</span></span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.submit_button" title="Link to this definition">¶</a></dt>
+<dd><p>Button to create the DataFrame from the uploaded file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ipywidgets.Button</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.variable_name">
+<span class="sig-name descname"><span class="pre">variable_name</span></span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.variable_name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable to store the DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.auto_display">
+<span class="sig-name descname"><span class="pre">auto_display</span></span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.auto_display" title="Link to this definition">¶</a></dt>
+<dd><p>If True, the widget is displayed immediately upon creation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.createDF">
+<span class="sig-name descname"><span class="pre">createDF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.createDF" title="Link to this definition">¶</a></dt>
+<dd><p>Creates a pandas DataFrame from the uploaded file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget.uploadData">
+<span class="sig-name descname"><span class="pre">uploadData</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.DataUploadWidget.uploadData" title="Link to this definition">¶</a></dt>
+<dd><p>Displays the file upload widget and button, and handles the file upload event.</p>
+</dd></dl>
+
+<p class="rubric">Examples</p>
+<p>Single DataFrame Usage:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uploader</span> <span class="o">=</span> <span class="n">DataUploadWidget</span><span class="p">(</span><span class="s2">&quot;df&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Multiple DataFrame Usage:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uploader1</span> <span class="o">=</span> <span class="n">DataUploadWidget</span><span class="p">(</span><span class="s2">&quot;df1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uploader2</span> <span class="o">=</span> <span class="n">DataUploadWidget</span><span class="p">(</span><span class="s2">&quot;df2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Delayed Output Usage:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Output</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">output</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">uploader</span> <span class="o">=</span> <span class="n">DataUploadWidget</span><span class="p">(</span><span class="s1">&#39;df3&#39;</span><span class="p">,</span> <span class="n">auto_display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">display</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">display</span><span class="p">(</span><span class="n">uploader</span><span class="o">.</span><span class="n">uploader</span><span class="p">,</span> <span class="n">uploader</span><span class="o">.</span><span class="n">submit_button</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="py method">
-<dt class="sig sig-object py" id="statwrap.ux.DataUpload.content">
-<span class="sig-name descname"><span class="pre">content</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#statwrap.ux.DataUpload.content" title="Link to this definition">¶</a></dt>
-<dd><p>Obtains content of uploaded file.</p>
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">createDF</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd><p>Create a pandas DataFrame from the uploaded file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DataFrame.</p>
+<dd class="field-odd"><p>DataFrame created from the uploaded file.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>pd.DataFrame</p>
 </dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the file extension is unsupported.</p>
+</dd>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">uploadData</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd><p>Display the file upload widget and button, and handle the file upload event.</p>
 </dd></dl>
 
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -117,13 +203,9 @@ accept parameter is modified after initialization.</p>
 <li class="toctree-l1"><a class="reference internal" href="fpp.html">FPP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sheets.html">Sheets</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">UX</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#statwrap.ux.BaseUpload"><code class="docutils literal notranslate"><span class="pre">BaseUpload</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.BaseUpload.update_description"><code class="docutils literal notranslate"><span class="pre">BaseUpload.update_description()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.BaseUpload.validate_accept"><code class="docutils literal notranslate"><span class="pre">BaseUpload.validate_accept()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#statwrap.ux.DataUpload"><code class="docutils literal notranslate"><span class="pre">DataUpload</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUpload.content"><code class="docutils literal notranslate"><span class="pre">DataUpload.content()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-statwrap.ux">Module Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#statwrap.ux.DataUploadWidget"><code class="docutils literal notranslate"><span class="pre">DataUploadWidget</span></code></a></li>
 </ul>
 </li>
 </ul>
