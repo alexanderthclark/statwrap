@@ -22,28 +22,6 @@ class DataUploadWidget:
     auto_display : bool, optional
         If True, the widget is displayed immediately upon creation. Default is True.
 
-    Attributes
-    ----------
-    accept : str
-        Accepted file extensions.
-    supported : set
-        Set of supported file extensions.
-    uploader : ipywidgets.FileUpload
-        File upload widget.
-    submit_button : ipywidgets.Button
-        Button to create the DataFrame from the uploaded file.
-    variable_name : str
-        Name of the variable to store the DataFrame.
-    auto_display : bool
-        If True, the widget is displayed immediately upon creation.
-
-    Methods
-    -------
-    createDF()
-        Creates a pandas DataFrame from the uploaded file.
-    uploadData()
-        Displays the file upload widget and button, and handles the file upload event.
-
     Examples
     --------
     Single DataFrame Usage:
@@ -76,19 +54,6 @@ class DataUploadWidget:
         self.uploadData()
 
     def createDF(self):
-        """
-        Create a pandas DataFrame from the uploaded file.
-
-        Returns
-        -------
-        pd.DataFrame
-            DataFrame created from the uploaded file.
-
-        Raises
-        ------
-        ValueError
-            If the file extension is unsupported.
-        """
         file_dict = self.uploader.value[0]
         file_content = file_dict['content']
         content_stream = io.BytesIO(file_content.tobytes())
@@ -107,9 +72,6 @@ class DataUploadWidget:
         return df
 
     def uploadData(self):
-        """
-        Display the file upload widget and button, and handle the file upload event.
-        """
         def on_submit(button):
             df = self.createDF()
             ipython = get_ipython()
