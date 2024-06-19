@@ -5,12 +5,13 @@ from IPython.display import display
 from IPython import get_ipython
 
 class DataUploadWidget:
-    def __init__(self, variable_name, accept: str = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'):
+    def __init__(self, variable_name, accept: str = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt', auto_display: bool = True):
         self.accept = accept
         self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
         self.uploader = widgets.FileUpload(accept=accept, multiple=False)
         self.submit_button = widgets.Button(description=f"Create DF as \"{variable_name}\"")
         self.variable_name = variable_name
+        self.auto_display = auto_display
 
         self.uploadData()
 
@@ -41,4 +42,5 @@ class DataUploadWidget:
         
         self.submit_button.on_click(on_submit)
         
-        display(self.uploader, self.submit_button)
+        if self.auto_display:
+            display(self.uploader, self.submit_button)
