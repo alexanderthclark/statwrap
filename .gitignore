@@ -59,4 +59,5 @@ docs/_build/doctrees/sheets.doctree
 /tests/.ipynb_checkpoints
 Untitled.ipynb
 Untitled1.ipynb
+docs/_build/
 *.ipynb
