@@ -1,15 +1,10 @@
-'''
-User Interactibility
-'''
-
 import ipywidgets as widgets
 import io
 import pandas as pd
 from IPython.display import display
 from IPython import get_ipython
 
-
-class DataUploadWidget:
+class DataUploadWidget(widgets.VBox):
     """
     A widget for uploading data files and creating a pandas DataFrame.
 
@@ -17,8 +12,6 @@ class DataUploadWidget:
     ----------
     variable_name : str
         The name of the variable to store the DataFrame in the IPython environment.
-    accept : str, optional
-        A comma-separated string of accepted file extensions. Default is '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'.
     auto_display : bool, optional
         If True, the widget is displayed immediately upon creation. Default is True.
 
@@ -40,20 +33,25 @@ class DataUploadWidget:
     >>>     uploader = DataUploadWidget('df3', auto_display=False)
     
     >>> display(output)
-    >>> display(uploader.uploader, uploader.submit_button)
+    >>> display(uploader)
     """
 
-    def __init__(self, variable_name, accept: str = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt', auto_display: bool = True):
-        self.accept = accept
+    def __init__(self, variable_name: str = 'df', auto_display: bool = True):
+        super().__init__()
+        self.accept = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'
         self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
-        self.uploader = widgets.FileUpload(accept=accept, multiple=False)
+        self.uploader = widgets.FileUpload(accept=self.accept, multiple=False)
         self.submit_button = widgets.Button(description=f"Create DF as \"{variable_name}\"")
         self.variable_name = variable_name
         self.auto_display = auto_display
 
-        self.uploadData()
+        self.submit_button.on_click(self._on_submit)
+        self.children = [self.uploader, self.submit_button]
 
-    def createDF(self):
+        if self.auto_display:
+            display(self)
+
+    def _create_df(self):
         file_dict = self.uploader.value[0]
         file_content = file_dict['content']
         content_stream = io.BytesIO(file_content.tobytes())
@@ -63,22 +61,20 @@ class DataUploadWidget:
         if file_extension == 'csv':
             df = pd.read_csv(content_stream)
         elif file_extension in {'xls', 'xlsx', 'xlsm', 'xlsb'}:
-            df = pd.read_excel(content_stream)
+            df = pd.read_excel(content_stream, engine='openpyxl' if file_extension == 'xlsx' else None)
         elif file_extension in {'odf', 'ods', 'odt'}:
             df = pd.read_excel(content_stream, engine='odf')
         else:
-            raise ValueError("Unsupported file extension")
+            raise ValueError("Unsupported file extension")  # unreachable
 
         return df
 
-    def uploadData(self):
-        def on_submit(button):
-            df = self.createDF()
-            ipython = get_ipython()
-            ipython.user_global_ns[self.variable_name] = df
-            display(df.head())
-        
-        self.submit_button.on_click(on_submit)
-        
-        if self.auto_display:
-            display(self.uploader, self.submit_button)
+    def _on_submit(self, button):
+        df = self._create_df()
+        ipython = get_ipython()
+        ipython.user_global_ns[self.variable_name] = df
+        display(df.head())
+
+def convenience_display(widget):
+    if isinstance(widget, DataUploadWidget):
+        display(widget)

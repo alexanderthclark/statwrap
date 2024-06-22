@@ -34,16 +34,14 @@
             
   <section id="module-statwrap.ux">
 <span id="user-experience"></span><h1>User Experience<a class="headerlink" href="#module-statwrap.ux" title="Link to this heading">¶</a></h1>
-<p>User Interactibility</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="statwrap.ux.DataUploadWidget">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">statwrap.ux.</span></span><span class="sig-name descname"><span class="pre">DataUploadWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accept</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_display</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.DataUploadWidget" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">statwrap.ux.</span></span><span class="sig-name descname"><span class="pre">DataUploadWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#statwrap.ux.DataUploadWidget" title="Link to this definition">¶</a></dt>
 <dd><p>A widget for uploading data files and creating a pandas DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>variable_name</strong> (<em>str</em>) – The name of the variable to store the DataFrame in the IPython environment.</p></li>
-<li><p><strong>accept</strong> (<em>str</em><em>, </em><em>optional</em>) – A comma-separated string of accepted file extensions. Default is ‘.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt’.</p></li>
 <li><p><strong>auto_display</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the widget is displayed immediately upon creation. Default is True.</p></li>
 </ul>
 </dd>
@@ -65,7 +63,7 @@
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">display</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">display</span><span class="p">(</span><span class="n">uploader</span><span class="o">.</span><span class="n">uploader</span><span class="p">,</span> <span class="n">uploader</span><span class="o">.</span><span class="n">submit_button</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">display</span><span class="p">(</span><span class="n">uploader</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
