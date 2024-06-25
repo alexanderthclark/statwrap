@@ -8,12 +8,19 @@ class DataUploadWidget(widgets.VBox):
     """
     A widget for uploading data files and creating a pandas DataFrame.
 
-    Parameters
+    Attributes
     ----------
+    uploader : widgets.FileUpload
+        Widget for file upload.
+    submit_button : widgets.Button
+        Button to submit the file upload and create the DataFrame.
     variable_name : str
         The name of the variable to store the DataFrame in the IPython environment.
-    auto_display : bool, optional
-        If True, the widget is displayed immediately upon creation. Default is True.
+
+    Parameters
+    ----------
+    variable_name : str, optional
+        The name of the variable to store the DataFrame in the IPython environment. Default is 'df'.
 
     Examples
     --------
@@ -36,20 +43,17 @@ class DataUploadWidget(widgets.VBox):
     >>> display(uploader)
     """
 
-    def __init__(self, variable_name: str = 'df', auto_display: bool = True):
+    def __init__(self, variable_name: str = 'df'):
         super().__init__()
         self.accept = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'
         self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
         self.uploader = widgets.FileUpload(accept=self.accept, multiple=False)
         self.submit_button = widgets.Button(description=f"Create DF as \"{variable_name}\"")
         self.variable_name = variable_name
-        self.auto_display = auto_display
 
         self.submit_button.on_click(self._on_submit)
         self.children = [self.uploader, self.submit_button]
 
-        if self.auto_display:
-            display(self)
 
     def _create_df(self):
         file_dict = self.uploader.value[0]
@@ -65,7 +69,7 @@ class DataUploadWidget(widgets.VBox):
         elif file_extension in {'odf', 'ods', 'odt'}:
             df = pd.read_excel(content_stream, engine='odf')
         else:
-            raise ValueError("Unsupported file extension")  # unreachable
+            raise ValueError("Unsupported file extension")
 
         return df
 
@@ -74,7 +78,3 @@ class DataUploadWidget(widgets.VBox):
         ipython = get_ipython()
         ipython.user_global_ns[self.variable_name] = df
         display(df.head())
-
-def convenience_display(widget):
-    if isinstance(widget, DataUploadWidget):
-        display(widget)
