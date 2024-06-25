@@ -293,6 +293,44 @@ def var(*args):
     a = args_to_array(args)
     return np.var(a, ddof=1)
 
+@hyperlink
+def IF(condition, x, y=None):
+    """
+    Returns `x` value if condition is True and otherwise returns `y`. `IF() <https://support.google.com/docs/answer/3093364?hl=en>`_.
+    
+    Parameters
+    ----------
+    condition : array_like or bool
+        Condition to evaluate. If array_like, it should have the same shape as `x` and `y`.
+    x : array_like
+        Values to return where `condition` is True.
+    y : array_like, optional
+        Values to return where `condition` is False. If not provided, defaults to `None`.
+
+    Returns
+    -------
+    result : array_like
+        An array with elements from `x` where `condition` is True, and elements from `y` where `condition` is False.
+
+    See Also
+    --------
+    numpy.where : Return elements chosen from `x` or `y` depending on `condition`.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> condition = np.random.normal(size=2) > 0
+    >>> IF(condition, 1, 0)
+    array([0, 1])
+
+    >>> IF(True, 1, 0)
+    1
+
+    """
+    result = np.where(condition, x, y).flatten()
+    result = result[0] if len(result)==1 else result
+    return result
+
 def change_df_std():
     original_std = pd.DataFrame.std
     def pop_std(self, **kwargs):
