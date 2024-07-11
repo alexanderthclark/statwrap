@@ -54,7 +54,7 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
 
 def scatter_plot(x, y, xlim=None, ylim=None,
               ax=None, show=True, save_as=None, xlabel=None,
-              ylabel=None, title=None, regression_line=False, **kwargs):
+              ylabel=None, title=None, regression_line=False, regression_equation=False **kwargs):
     """
     Create a scatter plot of `x` versus `y`, with specified axis labels, limits, title, and other properties.
     Optionally, a regression line can be added to the plot.
@@ -115,6 +115,11 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     if regression_line:
         m, b = np.polyfit(x, y, 1)  # Calculating the slope (m) and intercept (b) of the regression line
         ax.plot(x, m*x + b, color='gray')  # Plotting the regression line
+
+    if regression_equation: 
+        equation_text = f'y = {m:.2f}x + {b:.2f}'  # Add regression line equation to plot
+        ax.text(0.5 , 1, equation_text, transform=ax.transAxes, fontsize=10,
+                verticalalignment='bottom', horizontalalignment='center', alpha=0.5)
 
     if xlim is not None:
         ax.set_xlim(xlim)
