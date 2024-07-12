@@ -119,7 +119,7 @@ def scatter_plot(x, y, xlim=None, ylim=None,
 
     if regression_equation: 
         equation_text = f'y = {m:.2f}x + {b:.2f}'  # Add regression line equation to plot
-        ax.text(0.5 , 1, equation_text, transform=ax.transAxes, fontsize=10,
+        ax.text(0.5, 1, equation_text, transform=ax.transAxes, fontsize=10,
                 verticalalignment='bottom', horizontalalignment='center', alpha=0.5)
 
     if xlim is not None:
@@ -131,7 +131,7 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     if ylabel is not None:
         ax.set_ylabel(ylabel)
     if title is not None:
-        ax.set_title(title)
+        ax.set_title(title, pad=12)
 
     if save_as is not None:
         plt.savefig(save_as)
