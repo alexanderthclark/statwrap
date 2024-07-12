@@ -83,6 +83,8 @@ def scatter_plot(x, y, xlim=None, ylim=None,
         The title of the plot. Default is None.
     regression_line : bool, optional
         If True, a regression line will be added to the plot. Default is False.
+    regression_equation: bool, optional
+    	If True, the equation of the regression line will be added to the top of the plot. Default is False. 
     **kwargs : dict
         Additional keyword arguments passed to `matplotlib.pyplot.scatter`.
 
@@ -131,7 +133,8 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     if ylabel is not None:
         ax.set_ylabel(ylabel)
     if title is not None:
-        ax.set_title(title, pad=12)
+        pad=12 if regression_equation else None
+	ax.set_title(title, pad=pad)
 
     if save_as is not None:
         plt.savefig(save_as)
