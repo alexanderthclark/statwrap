@@ -112,8 +112,9 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     y = np.squeeze(np.array(y))
     ax.scatter(x, y, **kwargs)
 
-    if regression_line:
-        m, b = np.polyfit(x, y, 1)  # Calculating the slope (m) and intercept (b) of the regression line
+    m, b = np.polyfit(x, y, 1)  # Calculating the slope (m) and intercept (b) of the regression line
+    
+    if regression_line:    
         ax.plot(x, m*x + b, color='gray')  # Plotting the regression line
 
     if regression_equation: 
