@@ -54,7 +54,7 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
 
 def scatter_plot(x, y, xlim=None, ylim=None,
               ax=None, show=True, save_as=None, xlabel=None,
-              ylabel=None, title=None, regression_line=False, **kwargs):
+              ylabel=None, title=None, regression_line=False, regression_equation=False, **kwargs):
     """
     Create a scatter plot of `x` versus `y`, with specified axis labels, limits, title, and other properties.
     Optionally, a regression line can be added to the plot.
@@ -83,6 +83,8 @@ def scatter_plot(x, y, xlim=None, ylim=None,
         The title of the plot. Default is None.
     regression_line : bool, optional
         If True, a regression line will be added to the plot. Default is False.
+    regression_equation: bool, optional
+    	If True, the equation of the regression line will be added to the top of the plot. Default is False. 
     **kwargs : dict
         Additional keyword arguments passed to `matplotlib.pyplot.scatter`.
 
@@ -112,9 +114,15 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     y = np.squeeze(np.array(y))
     ax.scatter(x, y, **kwargs)
 
-    if regression_line:
-        m, b = np.polyfit(x, y, 1)  # Calculating the slope (m) and intercept (b) of the regression line
+    m, b = np.polyfit(x, y, 1)  # Calculating the slope (m) and intercept (b) of the regression line
+    
+    if regression_line:    
         ax.plot(x, m*x + b, color='gray')  # Plotting the regression line
+
+    if regression_equation: 
+        equation_text = f'y = {m:.2f}x + {b:.2f}'  # Add regression line equation to plot
+        ax.text(0.5, 1, equation_text, transform=ax.transAxes, fontsize=10,
+                verticalalignment='bottom', horizontalalignment='center', alpha=0.5)
 
     if xlim is not None:
         ax.set_xlim(xlim)
@@ -125,7 +133,8 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     if ylabel is not None:
         ax.set_ylabel(ylabel)
     if title is not None:
-        ax.set_title(title)
+        pad=12 if regression_equation else None
+        ax.set_title(title, pad=pad)
 
     if save_as is not None:
         plt.savefig(save_as)
