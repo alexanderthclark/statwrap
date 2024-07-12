@@ -133,7 +133,7 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     if ylabel is not None:
         ax.set_ylabel(ylabel)
     if title is not None:
-        pad=12 if regression_equation else None
+	pad=12 if regression_equation else None
 	ax.set_title(title, pad=pad)
 
     if save_as is not None:
