@@ -54,7 +54,7 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
 
 def scatter_plot(x, y, xlim=None, ylim=None,
               ax=None, show=True, save_as=None, xlabel=None,
-              ylabel=None, title=None, regression_line=False, regression_equation=False **kwargs):
+              ylabel=None, title=None, regression_line=False, regression_equation=False, **kwargs):
     """
     Create a scatter plot of `x` versus `y`, with specified axis labels, limits, title, and other properties.
     Optionally, a regression line can be added to the plot.
