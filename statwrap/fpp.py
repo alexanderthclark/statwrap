@@ -551,15 +551,28 @@ def fpp_setup():
 
 def contingency_table(data, column_1, column_2):
     """
-    Generates a contingency table from pandas DataFrame from two specified columns
+    Generates a contingency table from a pandas DataFrame from two specified columns.
 
-    Parameters:
-    data: The DataFrame containing the data (define df = example_DataFrame)
-    column_1: Title of the first column.
-    column_2: Title of the second column.
+    Parameters
+    ----------
+    data : pd.DataFrame
+        The DataFrame containing the data (define df = example_DataFrame).
+    column_1 : str
+        Title of the first column.
+    column_2 : str
+        Title of the second column.
 
-    Returns:
-    pd.DataFrame: Contingency Table.
+    Returns
+    -------
+    pd.DataFrame
+        Contingency Table.
+
+    Examples
+    --------
+    >>> df = pd.read_csv("cps_categoricals_00.csv")
+    >>> contingency_table(df, 'Industry', 'Geo_division')
+    
+    (contingency table will appear in notebook output)
     """
     if column_1 not in data.columns:
         raise ValueError(f"Column_1 '{column_1}' is not in DataFrame.")
