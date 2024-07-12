@@ -539,3 +539,23 @@ def histogram(*data_args, class_intervals=None, bins=None, density=True, xlim=No
 
 def fpp_setup():
     apply_pd_changes()
+
+def contingency_table(data, column_1, column_2):
+    """
+    Generates a contingency table from pandas DataFrame from two specified columns
+
+    Parameters:
+    data: The DataFrame containing the data (define df = example_DataFrame)
+    column_1: Title of the first column.
+    column_2: Title of the second column.
+
+    Returns:
+    pd.DataFrame: Contingency Table.
+    """
+    if column_1 not in data.columns:
+        raise ValueError(f"Column_1 '{column_1}' is not in DataFrame.")
+    if column_2 not in data.columns:
+        raise ValueError(f"Column_2 '{column_2}' is not in DataFrame.")
+
+    contingency_table = pd.crosstab(data[column_1], data[column_2])
+    return contingency_table
