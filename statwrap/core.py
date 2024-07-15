@@ -90,4 +90,5 @@ def use_all(line):
     sheets_setup()
     ip.ex("from statwrap.fpp import *")
     fpp_setup()
+    ip.ex("from statwrap.ux import *")
 
