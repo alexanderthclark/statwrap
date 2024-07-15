@@ -44,6 +44,14 @@ class DataUploadWidget(widgets.VBox):
     """
 
     def __init__(self, variable_name: str = 'df'):
+        """
+        Initialize the DataUploadWidget with the given variable name.
+
+        Parameters
+        ----------
+        variable_name : str, optional
+            The name of the variable to store the DataFrame in the IPython environment. Default is 'df'.
+        """
         super().__init__()
         self.accept = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'
         self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
