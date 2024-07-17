@@ -4,3 +4,6 @@ scipy
 IPython
 matplotlib
 statsmodels
+ipywidgets
+odfpy
+openpyxl
