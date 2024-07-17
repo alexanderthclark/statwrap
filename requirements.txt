@@ -4,3 +4,4 @@ scipy
 IPython
 matplotlib
 statsmodels
+ipywidgets
