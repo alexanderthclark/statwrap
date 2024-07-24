@@ -437,9 +437,13 @@ def change_std_behavior(pd_obj):
     setattr(pd_obj, 'sd', pop_std)
     setattr(pd_obj, 'sd_plus', sample_std)
 
+def change_ct_behavior(pd_obj):
+    setattr(pd_obj, 'contingency_table', contingency_table)
+
 def apply_pd_changes():
     change_std_behavior(pd.DataFrame)
     change_std_behavior(pd.Series)
+    change_ct_behavior(pd.DataFrame)
 
 def histogram(*data_args, class_intervals=None, bins=None, density=True, xlim=None, ylim=None,
               ax=None, show=True, save_as=None, xlabel=None,
