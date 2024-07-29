@@ -585,3 +585,100 @@ def contingency_table(data, column_1, column_2):
 
     contingency_table = pd.crosstab(data[column_1], data[column_2])
     return contingency_table
+
+def expected_df(data, column_1, column_2, correction=False):
+    """
+    Generates expected frequency table.
+
+    Parameters
+    --------
+    data (pd.DataFrame): The original data frame.
+    column_1 (str): The name of the first column for the contingency table.
+    column_2 (str): The name of the second column for the contingency table.
+    correction (bool): Yates' correction for continuity, default is False.
+
+    Returns
+    --------
+    Displays expected frequency table
+
+    Examples
+    --------
+    >>> df = pd.read_csv("cps_categoricals_00.csv")
+    >>> expected_df(df, 'birth_continent-self', 'geo_region')
+    
+    (expected frequency table will appear in notebook output)
+    """
+    try:
+        # Create the observed frequency table
+        observed = contingency_table(data, column_1, column_2)
+        
+        # Perform the Chi-squared test
+        chi2, p, dof, expected = chi2_contingency(observed, correction=correction)
+
+        # Convert expected frequencies to DataFrame
+        expected_df = pd.DataFrame(expected, columns=observed.columns, index=observed.index).round(2)
+       
+        # Style expected frequency table
+        styled_expected_df = expected_df.style.map(style_small_expected_count)
+
+        # Check if there are any expected counts less than 5
+        any_small_expected_counts = (expected_df < 5).any().any()
+        
+        if any_small_expected_counts:
+            print("Red cells have expected counts less than 5")
+
+        display(styled_expected_df)
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+def style_small_expected_count(val):
+    """
+    Used for formatting expected frequency tables; returns table values with expected counts less than 5 as red
+    """
+    return 'color: red;' if val < 5 else None
+
+def chi2_test(data, column_1, column_2, correction=False):
+    """
+    Perform Chi-squared test of independence.
+
+    Parameters
+    --------
+    data (pd.DataFrame): The original data frame.
+    column_1 (str): The name of the first column for the contingency table.
+    column_2 (str): The name of the second column for the contingency table.
+    correction (bool): Yates' correction for continuity, default is False.
+
+    Returns
+    --------
+    tuple: Chi-squared statistic, p-value, degrees of freedom, expected frequencies DataFrame
+
+    Examples
+    --------
+    >>> df = pd.read_csv("cps_categoricals_00.csv")
+    >>> chi2_test(df, 'birth_continent-self', 'geo_region')
+    
+    (expected frequency table and statistics will appear in notebook output)
+    """
+    try:
+        # Create the observed frequency table
+        observed = contingency_table(data, column_1, column_2)
+        
+        # Perform the Chi-squared test
+        chi2, p, dof, expected = chi2_contingency(observed, correction=correction)
+
+        # Create a DataFrame to store the results
+        results_df = pd.DataFrame({
+            'Statistic': ['Chi^2', 'p-value', 'Degrees of Freedom'],
+            'Value': [chi2, p, dof]
+        })
+
+        print("\nExpected Frequencies")
+        print("="*60)
+
+        return expected_df(data, column_1, column_2), results_df
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
