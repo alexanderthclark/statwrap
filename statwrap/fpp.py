@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, formula
+from scipy.stats import chi2_contingency
+from IPython.display import display
 
 def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
     """
