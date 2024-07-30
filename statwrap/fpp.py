@@ -610,31 +610,26 @@ def expected_df(data, column_1, column_2, correction=False):
     
     (expected frequency table will appear in notebook output)
     """
-    try:
-        # Create the observed frequency table
-        observed = contingency_table(data, column_1, column_2)
-        
-        # Perform the Chi-squared test
-        chi2, p, dof, expected = chi2_contingency(observed, correction=correction)
-
-        # Convert expected frequencies to DataFrame
-        expected_df = pd.DataFrame(expected, columns=observed.columns, index=observed.index).round(2)
-       
-        # Style expected frequency table
-        styled_expected_df = expected_df.style.map(style_small_expected_count)
-
-        # Check if there are any expected counts less than 5
-        any_small_expected_counts = (expected_df < 5).any().any()
-        
-        if any_small_expected_counts:
-            print("Red cells have expected counts less than 5")
-
-        display(styled_expected_df)
-    
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    # Verify that the columns exist in the DataFrame
+    if column_1 not in data.columns:
+        print(f"Error: '{column_1}' does not exist in the DataFrame.")
         return None
 
+    if column_2 not in data.columns:
+        print(f"Error: '{column_2}' does not exist in the DataFrame.")
+        return None
+        
+    # Create the observed frequency table
+    observed = contingency_table(data, column_1, column_2)
+    
+    # Perform the Chi-squared test
+    chi2, p, dof, expected = chi2_contingency(observed, correction=correction)
+
+    # Convert expected frequencies to DataFrame
+    expected_df = pd.DataFrame(expected, columns=observed.columns, index=observed.index).round(2)
+    
+    return expected_df
+  
 def style_small_expected_count(val):
     """
     Used for formatting expected frequency tables; returns table values with expected counts less than 5 as red
@@ -663,24 +658,36 @@ def chi2_test(data, column_1, column_2, correction=False):
     
     (expected frequency table and statistics will appear in notebook output)
     """
-    try:
-        # Create the observed frequency table
-        observed = contingency_table(data, column_1, column_2)
-        
-        # Perform the Chi-squared test
-        chi2, p, dof, expected = chi2_contingency(observed, correction=correction)
-
-        # Create a DataFrame to store the results
-        results_df = pd.DataFrame({
-            'Statistic': ['Chi^2', 'p-value', 'Degrees of Freedom'],
-            'Value': [chi2, p, dof]
-        })
-
-        print("\nExpected Frequencies")
-        print("="*60)
-
-        return expected_df(data, column_1, column_2), results_df
-    
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    # Verify that the columns exist in the DataFrame
+    if column_1 not in data.columns:
+        print(f"Error: '{column_1}' does not exist in the DataFrame.")
         return None
+
+    if column_2 not in data.columns:
+        print(f"Error: '{column_2}' does not exist in the DataFrame.")
+        return None
+        
+    # Create the observed frequency table
+    observed = contingency_table(data, column_1, column_2)
+    
+    # Perform the Chi-squared test
+    chi2, p, dof, expected = chi2_contingency(observed, correction=correction)
+    
+    # Create a DataFrame to store the results
+    results_df = pd.DataFrame({
+        'Statistic': ['Chi^2', 'p-value', 'Degrees of Freedom'],
+        'Value': [chi2, p, dof]
+    })
+    
+    # Get the expected frequency table
+    expected_frequencies = expected_df(data, column_1, column_2)
+    styled_expected_df = expected_frequencies.style.map(style_small_expected_count)
+
+    # Check if there are any expected counts less than 5
+    any_small_expected_counts = (expected_frequencies < 5).any().any()
+    
+    if any_small_expected_counts:
+        print("Red cells have expected counts less than 5")
+    
+    display(styled_expected_df)
+    return results_df
