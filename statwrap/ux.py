@@ -62,9 +62,25 @@ class DataUploadWidget(widgets.VBox):
         self.submit_button.on_click(self._on_submit)
         self.children = [self.uploader, self.submit_button]
 
-
     def _create_df(self):
-        file_dict = self.uploader.value[0]
+        """
+        Create a DataFrame from the uploaded file.
+
+        Returns
+        -------
+        df : pandas.DataFrame
+            The DataFrame created from the uploaded file.
+        
+        Raises
+        ------
+        ValueError
+            If the uploaded file has an unsupported extension.
+        """
+        if isinstance(self.uploader.value, dict):  # For Colab
+            file_dict = list(self.uploader.value.values())[0]
+        else:  # For local environment
+            file_dict = self.uploader.value[0]
+        
         file_content = file_dict['content']
         content_stream = io.BytesIO(file_content.tobytes())
         file_name = file_dict['name']
@@ -82,6 +98,14 @@ class DataUploadWidget(widgets.VBox):
         return df
 
     def _on_submit(self, button):
+        """
+        Handle the submit button click event to create and display the DataFrame.
+
+        Parameters
+        ----------
+        button : widgets.Button
+            The button that was clicked.
+        """
         df = self._create_df()
         ipython = get_ipython()
         ipython.user_global_ns[self.variable_name] = df
