@@ -88,7 +88,7 @@ def get_atus_link(file, year, multi_year=True):
     Returns
     -------
     str
-        Link to zip file.
+        Link to the zip file.
 
     Examples
     --------
