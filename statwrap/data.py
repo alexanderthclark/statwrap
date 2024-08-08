@@ -71,3 +71,44 @@ cezanne = {
 }
 
 paintings = pd.concat([pd.DataFrame(picasso), pd.DataFrame(cezanne)])
+
+def get_atus_link(file, year, multi_year=True):
+"""
+    Returns link to American Time Use Survey (ATUS) file data for given parameters.
+
+    Parameters
+    ----------
+    file : str
+        The name of the ATUS file ["resp", "rost", "sum", "act", "cps", "who"].
+    year : str
+        The survey year of interest.
+    multi_year : bool
+        Returns either single or multi-year data, default is True.
+
+    Returns
+    -------
+    str
+        Link to zip file.
+
+    Examples
+    --------
+    >>> get_atus_link('resp', 2023)
+    
+    (Link will return in notebook output)
+    """
+
+    base_url = "https://www.bls.gov/tus/datafiles/atus"
+    
+    # Convert the parameters to strings
+    file_str = str(file)
+    year_str = str(year)
+
+    # Multi-year handling
+    if multi_year == True:
+        year_suffix = year_str[-2:]  
+        link = f"{base_url}{file_str}-03{year_suffix}.zip"
+    else:
+        year_suffix = year_str[-2:]
+        link = f"{base_url}{file_str}-{year_suffix}.zip"
+    
+    return link
