@@ -2,6 +2,7 @@
 Data sets and random data functions.
 '''
 import pandas as pd
+import zipfile
 
 # Inspired by Galenson's Old Masters and Young Geniuses
 # These ages and dates are all approximate.
@@ -108,3 +109,31 @@ def get_atus_link(file, year, multi_year=True):
         link = f"{base_url}{file}-{year_suffix}.zip"
 
     return link
+
+def extract_data(filepath):
+    """
+    Returns Pandas DataFrame for .dat file in .zip format (formulated for ATUS data)
+
+    Parameters
+    ----------
+    filepath : str
+        The name of the ATUS file ('atusresp-0323.zip').
+
+    Returns
+    -------
+    Pandas DataFrame
+
+    Examples
+    --------
+    >>> extract_data('atusresp-0323.zip')
+    (df returned in notebook)
+    """
+    
+    for file in files:
+        os.system(f'cp ~/Downloads/atus{file}{ending} {os.getcwd()}')
+        with ZipFile(f'atus{file}{ending}', 'r') as z:
+            z.extractall()
+            dat = ending.replace(".zip",'.dat').replace("-",'_')
+            df = pd.read_csv(z.open(f'atus{file}{dat}'))
+    
+    return df
