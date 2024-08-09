@@ -3,6 +3,7 @@ Data sets and random data functions.
 '''
 import pandas as pd
 import zipfile
+import os
 
 # Inspired by Galenson's Old Masters and Young Geniuses
 # These ages and dates are all approximate.
