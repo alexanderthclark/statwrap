@@ -1,5 +1,5 @@
 '''
-Data sets and random data functions.
+Data sets and data functions.
 '''
 import pandas as pd
 
@@ -71,40 +71,3 @@ cezanne = {
 }
 
 paintings = pd.concat([pd.DataFrame(picasso), pd.DataFrame(cezanne)])
-
-def get_atus_link(file, year, multi_year=True):
-    """
-    Returns link to American Time Use Survey (ATUS) file data for given parameters.
-
-    Parameters
-    ----------
-    file : str
-        The name of the ATUS file ["resp", "rost", "sum", "act", "cps", "who"].
-    year : int
-        The survey year of interest.
-    multi_year : bool, optional
-        Returns either single or multi-year data, default is True.
-
-    Returns
-    -------
-    str
-        Link to the zip file.
-
-    Examples
-    --------
-    >>> get_atus_link('resp', 2023)
-    'https://www.bls.gov/tus/datafiles/atusresp-0323.zip'
-    """
-
-    base_url = "https://www.bls.gov/tus/datafiles/atus"
-
-    # Convert the year to a string and get the last two digits
-    year_suffix = str(year)[-2:]
-
-    # Multi-year handling
-    if multi_year:
-        link = f"{base_url}{file}-03{year_suffix}.zip"
-    else:
-        link = f"{base_url}{file}-{year_suffix}.zip"
-
-    return link
