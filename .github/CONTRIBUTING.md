@@ -1,7 +1,7 @@
 
 # Contributing to Statwrap
 
-This documentation covers the contribution process for `statwrap`, an unstable development version. Contributions are welcome, and we appreciate your interest in making `statwrap` better!
+This documentation covers the contribution process for `statwrap`. Contributions are welcome, and we appreciate your interest in making `statwrap` better!
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -130,6 +130,7 @@ Thank you for considering contributing to `statwrap`. This guide outlines the pr
 - **Best Practices:** 
   - Start with a capital letter.
   - Keep the message concise but informative.
+  - If responding to an issue (BUG or ENH), include 'fixes #{issue number}' in the commit message.
 
 ### Code Style
 
@@ -160,7 +161,8 @@ Thank you for considering contributing to `statwrap`. This guide outlines the pr
 - **Docstring Conventions:** Follow the NumPy/SciPy documentation style for writing docstrings. This includes sections such as Parameters, Returns, Examples, and Notes.
 - **API Documentation:** Ensure that all public functions and classes are well-documented. Private methods can be documented at your discretion.
 - **Rebuilding Docs:** After making changes to the code or documentation, rebuild the documentation to ensure it is up-to-date.
+- **Curent Documentation:** Found on this site: [StatWrap Documentation](https://statwrap.readthedocs.io/en/latest/)
 
 ## License
 
-`statwrap` is licensed under the [MIT License](link-to-license).
+`statwrap` is licensed under the [MIT License](https://www.mit.edu/~amini/LICENSE.md).
