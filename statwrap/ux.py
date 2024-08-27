@@ -82,7 +82,7 @@ class DataUploadWidget(widgets.VBox):
             file_dict = self.uploader.value[0]
         
         file_content = file_dict['content']
-        content_stream = io.BytesIO(file_content.tobytes())
+        content_stream = io.BytesIO(file_content)  # No need to call tobytes() on file_content
         file_name = file_dict['name']
         file_extension = file_name.split('.')[-1]
 
