@@ -74,28 +74,30 @@ class DataUploadWidget(widgets.VBox):
         Raises
         ------
         ValueError
-            If the uploaded file has an unsupported extension.
+            If no file is uploaded or if the uploaded file has an unsupported extension.
         """
-        if isinstance(self.uploader.value, dict):  # For Colab
-            file_dict = list(self.uploader.value.values())[0]
-        else:  # For local environment
-            file_dict = self.uploader.value[0]
+        # Check if a file was uploaded
+        if not self.uploader.value:
+            raise ValueError("No file uploaded. Please upload a file before submitting.")
         
-        file_content = file_dict['content']
-        content_stream = io.BytesIO(file_content)  # No need to call tobytes() on file_content
-        file_name = file_dict['name']
-        file_extension = file_name.split('.')[-1]
+        # Iterate over the uploaded files (although in this case, we're expecting only one file)
+        for filename, file_info in self.uploader.value.items():
+            file_content = file_info['content']
+            content_stream = io.BytesIO(file_content)
+            
+            # Extract the file extension
+            file_extension = filename.split('.')[-1]
 
-        if file_extension == 'csv':
-            df = pd.read_csv(content_stream)
-        elif file_extension in {'xls', 'xlsx', 'xlsm', 'xlsb'}:
-            df = pd.read_excel(content_stream, engine='openpyxl' if file_extension == 'xlsx' else None)
-        elif file_extension in {'odf', 'ods', 'odt'}:
-            df = pd.read_excel(content_stream, engine='odf')
-        else:
-            raise ValueError("Unsupported file extension")
+            if file_extension == 'csv':
+                df = pd.read_csv(content_stream)
+            elif file_extension in {'xls', 'xlsx', 'xlsm', 'xlsb'}:
+                df = pd.read_excel(content_stream, engine='openpyxl' if file_extension == 'xlsx' else None)
+            elif file_extension in {'odf', 'ods', 'odt'}:
+                df = pd.read_excel(content_stream, engine='odf')
+            else:
+                raise ValueError("Unsupported file extension")
 
-        return df
+            return df
 
     def _on_submit(self, button):
         """
@@ -106,7 +108,10 @@ class DataUploadWidget(widgets.VBox):
         button : widgets.Button
             The button that was clicked.
         """
-        df = self._create_df()
-        ipython = get_ipython()
-        ipython.user_global_ns[self.variable_name] = df
-        display(df.head())
+        try:
+            df = self._create_df()
+            ipython = get_ipython()
+            ipython.user_global_ns[self.variable_name] = df
+            display(df.head())
+        except ValueError as e:
+            print(f"Error: {e}")
