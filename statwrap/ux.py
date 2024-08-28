@@ -25,22 +25,19 @@ class DataUploadWidget(widgets.VBox):
     Examples
     --------
     Single DataFrame Usage:
-
-    >>> uploader = DataUploadWidget("df")
+        >>> uploader = DataUploadWidget("df")
 
     Multiple DataFrame Usage:
-    
-    >>> uploader1 = DataUploadWidget("df1")
-    >>> uploader2 = DataUploadWidget("df2")
+        >>> uploader1 = DataUploadWidget("df1")
+        >>> uploader2 = DataUploadWidget("df2")
 
     Delayed Output Usage:
-
-    >>> output = widgets.Output()
-    >>> with output:
-    >>>     uploader = DataUploadWidget('df3', auto_display=False)
-    
-    >>> display(output)
-    >>> display(uploader)
+        >>> output = widgets.Output()
+        >>> with output:
+        >>>     uploader = DataUploadWidget('df3', auto_display=False)
+        
+        >>> display(output)
+        >>> display(uploader)
     """
 
     def __init__(self, variable_name: str = 'df'):
@@ -53,13 +50,18 @@ class DataUploadWidget(widgets.VBox):
             The name of the variable to store the DataFrame in the IPython environment. Default is 'df'.
         """
         super().__init__()
+        # Define the accepted file types
         self.accept = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'
         self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
+        # Create a FileUpload widget allowing only single file uploads
         self.uploader = widgets.FileUpload(accept=self.accept, multiple=False)
+        # Create a submit button with the variable name embedded in the label
         self.submit_button = widgets.Button(description=f"Create DF as \"{variable_name}\"")
         self.variable_name = variable_name
 
+        # Attach the _on_submit method to the button's on_click event
         self.submit_button.on_click(self._on_submit)
+        # Set the child widgets of this VBox to include the uploader and submit button
         self.children = [self.uploader, self.submit_button]
 
     def _create_df(self):
@@ -74,28 +76,33 @@ class DataUploadWidget(widgets.VBox):
         Raises
         ------
         ValueError
-            If the uploaded file has an unsupported extension.
+            If no file is uploaded or if the uploaded file has an unsupported extension.
         """
-        if isinstance(self.uploader.value, dict):  # For Colab
-            file_dict = list(self.uploader.value.values())[0]
-        else:  # For local environment
-            file_dict = self.uploader.value[0]
+        # Check if a file was uploaded; raise an error if not
+        if not self.uploader.value:
+            raise ValueError("No file uploaded. Please upload a file before submitting.")
         
-        file_content = file_dict['content']
-        content_stream = io.BytesIO(file_content.tobytes())
-        file_name = file_dict['name']
-        file_extension = file_name.split('.')[-1]
+        # Iterate over the uploaded files (only one expected since multiple=False)
+        for filename, file_info in self.uploader.value.items():
+            file_content = file_info['content']
+            content_stream = io.BytesIO(file_content)  # Create a binary stream from the file content
+            
+            # Extract the file extension to determine how to load the file
+            file_extension = filename.split('.')[-1]
 
-        if file_extension == 'csv':
-            df = pd.read_csv(content_stream)
-        elif file_extension in {'xls', 'xlsx', 'xlsm', 'xlsb'}:
-            df = pd.read_excel(content_stream, engine='openpyxl' if file_extension == 'xlsx' else None)
-        elif file_extension in {'odf', 'ods', 'odt'}:
-            df = pd.read_excel(content_stream, engine='odf')
-        else:
-            raise ValueError("Unsupported file extension")
+            # Depending on the file extension, load the file content into a DataFrame
+            if file_extension == 'csv':
+                df = pd.read_csv(content_stream)
+            elif file_extension in {'xls', 'xlsx', 'xlsm', 'xlsb'}:
+                df = pd.read_excel(content_stream, engine='openpyxl' if file_extension == 'xlsx' else None)
+            elif file_extension in {'odf', 'ods', 'odt'}:
+                df = pd.read_excel(content_stream, engine='odf')
+            else:
+                # Raise an error if the file extension is not supported
+                raise ValueError("Unsupported file extension")
 
-        return df
+            # Return the created DataFrame
+            return df
 
     def _on_submit(self, button):
         """
@@ -106,7 +113,14 @@ class DataUploadWidget(widgets.VBox):
         button : widgets.Button
             The button that was clicked.
         """
-        df = self._create_df()
-        ipython = get_ipython()
-        ipython.user_global_ns[self.variable_name] = df
-        display(df.head())
+        try:
+            # Attempt to create the DataFrame from the uploaded file
+            df = self._create_df()
+            # Store the DataFrame in the IPython environment under the given variable name
+            ipython = get_ipython()
+            ipython.user_global_ns[self.variable_name] = df
+            # Display the first few rows of the DataFrame
+            display(df.head())
+        except ValueError as e:
+            # If an error occurs (e.g., no file uploaded), print the error message
+            print(f"Error: {e}")
