@@ -4,6 +4,6 @@ scipy
 IPython
 matplotlib
 statsmodels
-ipywidgets
+ipywidgets==7.7.1
 odfpy
 openpyxl
