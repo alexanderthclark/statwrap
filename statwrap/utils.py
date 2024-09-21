@@ -243,7 +243,10 @@ class Hyperplane:
         terms = [f'{round(self.coefficients[0],3):g}']
         for i, coef in enumerate(self.coefficients[1:], 1):
             coef = round(coef, 3)
-            terms.append(f'{coef:+g} x_{{{i}}}')
+            if len(self.coefficients) > 2:
+                terms.append(f'{coef:+g} x_{{{i}}}')
+            else:
+                terms.append(f'{coef:+g} x')
         return r'$\hat{y} = ' + ' '.join(terms) + "$"
 
     def predict(self, data, add_constant = True, dataframe = True):
