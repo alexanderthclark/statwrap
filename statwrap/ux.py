@@ -40,7 +40,7 @@ class DataUploadWidget(widgets.VBox):
         >>> display(uploader)
     """
 
-    def __init__(self, variable_name: str = 'df'):
+    def __init__(self, variable_name: str = 'df', preview=True):
         """
         Initialize the DataUploadWidget with the given variable name.
 
@@ -53,14 +53,18 @@ class DataUploadWidget(widgets.VBox):
         # Define the accepted file types
         self.accept = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'
         self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
-        # Create a FileUpload widget allowing only single file uploads
-        self.uploader = widgets.FileUpload(accept=self.accept, multiple=False)
         # Create a submit button with the variable name embedded in the label
-        self.submit_button = widgets.Button(description=f"Create DF as \"{variable_name}\"")
+        self.submit_button = widgets.Button(description=f"Create DF as \"{variable_name}\"",
+                                            layout=widgets.Layout(min_width='200px', width='fit-content'))
+        # Create a FileUpload widget allowing only single file uploads
+        self.uploader = widgets.FileUpload(accept=self.accept,
+                                           multiple=False,
+                                           layout=self.submit_button.layout)
         self.variable_name = variable_name
-
         # Attach the _on_submit method to the button's on_click event
         self.submit_button.on_click(self._on_submit)
+        # Option to display DataFrame head on submit
+        self.preview = preview
         # Set the child widgets of this VBox to include the uploader and submit button
         self.children = [self.uploader, self.submit_button]
 
@@ -120,7 +124,8 @@ class DataUploadWidget(widgets.VBox):
             ipython = get_ipython()
             ipython.user_global_ns[self.variable_name] = df
             # Display the first few rows of the DataFrame
-            display(df.head())
+            if self.preview:
+                display(df.head())
         except ValueError as e:
             # If an error occurs (e.g., no file uploaded), print the error message
             print(f"Error: {e}")
