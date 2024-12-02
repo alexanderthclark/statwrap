@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
 from statwrap.utils import modify_std, args_to_array, formula
+from scipy.stats import chi2_contingency
+from IPython.display import display
 
 def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
     """
@@ -585,3 +587,107 @@ def contingency_table(data, column_1, column_2):
 
     contingency_table = pd.crosstab(data[column_1], data[column_2])
     return contingency_table
+
+def expected_df(data, column_1, column_2, correction=False):
+    """
+    Generates expected frequency table.
+
+    Parameters
+    --------
+    data (pd.DataFrame): The original data frame.
+    column_1 (str): The name of the first column for the contingency table.
+    column_2 (str): The name of the second column for the contingency table.
+    correction (bool): Yates' correction for continuity, default is False.
+
+    Returns
+    --------
+    Displays expected frequency table
+
+    Examples
+    --------
+    >>> df = pd.read_csv("cps_categoricals_00.csv")
+    >>> expected_df(df, 'birth_continent-self', 'geo_region')
+    
+    (expected frequency table will appear in notebook output)
+    """
+    # Verify that the columns exist in the DataFrame
+    if column_1 not in data.columns:
+        print(f"Error: '{column_1}' does not exist in the DataFrame.")
+        return None
+
+    if column_2 not in data.columns:
+        print(f"Error: '{column_2}' does not exist in the DataFrame.")
+        return None
+        
+    # Create the observed frequency table
+    observed = contingency_table(data, column_1, column_2)
+    
+    # Perform the Chi-squared test
+    chi2, p, dof, expected = chi2_contingency(observed, correction=correction)
+
+    # Convert expected frequencies to DataFrame
+    expected_df = pd.DataFrame(expected, columns=observed.columns, index=observed.index).round(2)
+    
+    return expected_df
+  
+def style_small_expected_count(val):
+    """
+    Used for formatting expected frequency tables; returns table values with expected counts less than 5 as red
+    """
+    return 'color: red;' if val < 5 else None
+
+def chi2_test(data, column_1, column_2, correction=False):
+    """
+    Perform Chi-squared test of independence.
+
+    Parameters
+    --------
+    data (pd.DataFrame): The original data frame.
+    column_1 (str): The name of the first column for the contingency table.
+    column_2 (str): The name of the second column for the contingency table.
+    correction (bool): Yates' correction for continuity, default is False.
+
+    Returns
+    --------
+    tuple: Chi-squared statistic, p-value, degrees of freedom, expected frequencies DataFrame
+
+    Examples
+    --------
+    >>> df = pd.read_csv("cps_categoricals_00.csv")
+    >>> chi2_test(df, 'birth_continent-self', 'geo_region')
+    
+    (expected frequency table and statistics will appear in notebook output)
+    """
+    # Verify that the columns exist in the DataFrame
+    if column_1 not in data.columns:
+        print(f"Error: '{column_1}' does not exist in the DataFrame.")
+        return None
+
+    if column_2 not in data.columns:
+        print(f"Error: '{column_2}' does not exist in the DataFrame.")
+        return None
+        
+    # Create the observed frequency table
+    observed = contingency_table(data, column_1, column_2)
+    
+    # Perform the Chi-squared test
+    chi2, p, dof, expected = chi2_contingency(observed, correction=correction)
+    
+    # Create a DataFrame to store the results
+    results_df = pd.DataFrame({
+        'Statistic': ['Chi^2', 'p-value', 'Degrees of Freedom'],
+        'Value': [chi2, p, dof]
+    })
+    
+    # Get the expected frequency table
+    expected_frequencies = expected_df(data, column_1, column_2)
+    styled_expected_df = expected_frequencies.style.map(style_small_expected_count)
+
+    # Check if there are any expected counts less than 5
+    any_small_expected_counts = (expected_frequencies < 5).any().any()
+    
+    if any_small_expected_counts:
+        print("Red cells have expected counts less than 5")
+    
+    display(styled_expected_df)
+    return results_df
