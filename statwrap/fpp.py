@@ -462,7 +462,7 @@ def histogram(*data_args, class_intervals=None, bins=None, density=True, xlim=No
     bins : int or sequence, optional
         Alternative name for class_intervals. class_intervals takes precedence is arguments are provided for both.
 
-    density : bool, default False
+    density : bool, default True
         If True, normalizes the histogram so that the total area is equal to 1.
 
     xlim : tuple, optional
