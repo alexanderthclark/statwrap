@@ -9,6 +9,12 @@ Different submodules adopt different conventions. The `fpp` submodule correspond
 
 The target user will use this package in a Google Colab or Jupyter notebook. Install with `!pip install statwrap`.
 
+If you are working from a local clone of the repository, install the required
+packages first:
+```bash
+pip install -r requirements.txt
+```
+
 Then import the package and use a magic command to load the desired module. 
 ```python
 import statwrap
