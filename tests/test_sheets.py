@@ -12,13 +12,13 @@ class TestLinest(unittest.TestCase):
 		self.X = np.array([self.x1, self.x2]).T
 		self.y = 2 + self.x1 - self.x2
 
-	def single_linest(self):
+	def test_single_linest(self):
 		reg_line1 = linest(self.y, self.x1)
 		reg_line12 = linest(self.y, self.X)
 		params12 = reg_line12.results.params
-		self.assertTrue(math.isclose(params12[0], 2, abs_tol=10**-6))
+		self.assertTrue(math.isclose(params12.iloc[0], 2, abs_tol=10**-6))
 
-	def double_call(self):
+	def test_double_call(self):
 		y = np.random.normal(size = 10)
 		X = pd.DataFrame(np.random.rand(10,2))
 		X['ones'] = 1
