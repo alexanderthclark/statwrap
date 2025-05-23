@@ -6,13 +6,11 @@ import pandas as pd
 import scipy.stats as stats
 import statsmodels.api as sm
 import warnings
-from IPython.core.magic import register_line_magic
 from statwrap.utils import (
-    modify_std, 
-    args_to_array, 
-    hyperlink, 
-    Hyperplane, 
-    RegressionLine, 
+    modify_std,
+    args_to_array,
+    hyperlink,
+    RegressionLine,
 )
 
 @hyperlink
@@ -66,7 +64,7 @@ def linest(y, x, verbose = False):
         for idx, v in x.var().items():
             if v == 0:
                 del x[idx]
-    except:
+    except Exception:
         pass
     X = sm.add_constant(x)
     y = np.array(y)
@@ -148,6 +146,31 @@ def correl(x, y):
 
     """
     return np.corrcoef(x,y)[0][1]
+
+@hyperlink
+def slope(y, x):
+    """Calculate the slope of the linear regression line, mimicking
+    `SLOPE() <https://support.google.com/docs/answer/3094048?hl=en>`_.
+
+    Parameters
+    ----------
+    y : array_like
+        Dependent variable values.
+    x : array_like
+        Independent variable values.
+
+    Returns
+    -------
+    float
+        The slope of the best fit line.
+
+    Examples
+    --------
+    >>> slope([1, 2, 3], [1, 2, 4])
+    0.8
+    """
+    res = stats.linregress(x, y)
+    return res.slope
 
 @hyperlink
 def average(*args):
@@ -302,9 +325,6 @@ def change_df_std():
     pd.DataFrame.stdevp = pop_std
     pd.DataFrame.stdev = original_std
 
-def sheets_setup():
-    change_df_std()
-
 def change_std_behavior(pd_obj):
     original = getattr(pd_obj, 'std')
     pop_std, sample_std = modify_std(original)
@@ -320,6 +340,7 @@ def sheets_setup():
     warnings.filterwarnings("ignore",
                 message="omni_normtest is not valid with less than 8 observations")
     # statsmodels graphics
-    warnings.filterwarnings("ignore", 
+    warnings.filterwarnings("ignore",
                 message="Series.__getitem__ treating keys as positions is deprecated")
+    change_df_std()
     apply_pd_changes()
