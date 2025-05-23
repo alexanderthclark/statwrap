@@ -21,9 +21,9 @@ def linest(y, x, verbose = False):
     This function performs a simple OLS (Ordinary Least Squares) regression
     on the provided input data to estimate the coefficients of a linear model.
     It returns a `Hyperplane` object representing the estimated linear model in
-    the general case, or a `RegressionLine` object in the case of univariate 
+    the general case, or a `RegressionLine` object in the case of univariate
     regression (i.e., when there's only one independent variable). These objects
-    can be used to compute the predicted values of the dependent variable. If 
+    can be used to compute the predicted values of the dependent variable. If
     `verbose` is set to True, it also returns a summary of the regression analysis.
 
     Parameters
@@ -40,10 +40,10 @@ def linest(y, x, verbose = False):
     Returns
     -------
     Hyperplane or RegressionLine, (Optional) Regression Summary
-        An object representing the estimated linear model. The coefficients 
-        of the model are stored in the `coefficients` attribute of the 
+        An object representing the estimated linear model. The coefficients
+        of the model are stored in the `coefficients` attribute of the
         returned object, and the model can be called as a function to compute
-        predicted values. In the case of univariate regression, a 
+        predicted values. In the case of univariate regression, a
         `RegressionLine` object is returned. If `verbose` is True, also returns
         a summary of the regression analysis.
 
@@ -70,7 +70,7 @@ def linest(y, x, verbose = False):
     y = np.array(y)
     results = sm.OLS(y, X).fit()
     p = RegressionLine(y, x, results)
-    
+
     if verbose:
         return p, results.summary()
     else:
@@ -92,7 +92,7 @@ def normdist(x, mean=0, standard_deviation=1, cumulative=True):
     standard_deviation : float, optional
         The standard deviation of the Normal distribution. Default is 1.
     cumulative : bool, optional
-        Whether to compute the cumulative distribution function (CDF) or the 
+        Whether to compute the cumulative distribution function (CDF) or the
         probability density function (PDF). Default is True (CDF).
 
     Returns
@@ -345,3 +345,4 @@ def sheets_setup():
                 message="Series.__getitem__ treating keys as positions is deprecated")
     change_df_std()
     apply_pd_changes()
+

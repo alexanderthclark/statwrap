@@ -101,7 +101,7 @@ class TestRMSSize(unittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
 class TestStd(unittest.TestCase):
 
     def setUp(self):
@@ -185,7 +185,7 @@ class TestSDPlus(unittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
 class TestStandardUnits(unittest.TestCase):
 
     def setUp(self):
@@ -230,7 +230,7 @@ class TestVariancePlus(unittest.TestCase):
         result = var_plus(self.numbers_array)
         expected = 1.0
         self.assertAlmostEqual(result, expected)
-        
+
     def test_var_plus_division_error(self):
         with self.assertRaises(ValueError):
             sd_plus(self.single_value)
@@ -250,3 +250,4 @@ class TestVariancePlus(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

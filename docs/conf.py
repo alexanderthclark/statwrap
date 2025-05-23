@@ -42,3 +42,4 @@ autodoc_mock_imports = ['IPython', 'pandas', 'numpy', 'matplotlib', 'scipy', 'st
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+

@@ -56,7 +56,7 @@ def formula(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
-    
+
     def _repr_latex_():
         lines = func.__doc__.splitlines()
         start = False
@@ -70,7 +70,7 @@ def formula(func):
                 break
 
         return f"$$ {latex} $$"
-    
+
     setattr(wrapper, "_repr_latex_", _repr_latex_)
 
     return wrapper
@@ -97,16 +97,16 @@ def hyperlink(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)
-    
+
     def _repr_html_():
         link_text, hyperlink = find_first_external_link(func.__doc__)
         if hyperlink:
             return f"<a href='{hyperlink}' target='_blank'>{link_text}</a>"
         else:
             return ""
-    
+
     setattr(wrapper, "_repr_html_", _repr_html_)
-    
+
     return wrapper
 
 def args_to_array(args):
@@ -311,12 +311,12 @@ class RegressionLine(Hyperplane):
     def x(self):
         """Returns the input values."""
         return self.__x
-   
+
     @property
     def results(self):
         """Returns the StatsModels results object."""
         return self.__results
-   
+
     @property
     def predictions(self):
         """Returns the predicted values based on input x."""
@@ -398,3 +398,4 @@ class RegressionLine(Hyperplane):
             fpp.scatter_plot(x, self.y, ax=ax, **kwargs)
         if show:
             plt.show()
+

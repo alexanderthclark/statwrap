@@ -13,15 +13,15 @@ picasso = {
         "The Old Guitarist", "La Vie", "Boy Leading a Horse", "Les Demoiselles d'Avignon",
         "Three Women", "The Reservoir, Horta de Ebro", "Portrait of Ambroise Vollard",
         "Girl with a Mandolin", "The Poet", "Guitar, Sheet Music, and Wine Glass",
-        "Still Life with Chair Caning", "Three Musicians", "The Three Dancers", 
-        "The Crucifixion", "Girl before a Mirror", "Le Rêve", "Guernica", 
-        "The Weeping Woman", "Night Fishing at Antibes", "The Charnel House", 
-        "Massacre in Korea", "Don Quixote", "Les Femmes d'Alger", "Jacqueline with Flowers", 
-        "The Rape of the Sabine Women", "Man and Woman", "Seated Woman", 
-        "Bull's Head", "The Kitchen", "Woman with a Hat", "The Kiss", 
-        "The Dance", "Bust of a Woman", "Dove of Peace", "Large Bather with a Book", 
-        "Vollard Suite", "Bather with Beach Ball", "Harlequin", "Portrait of Olga in an Armchair", 
-        "Reading the Letter", "Minotauromachy", "Mother and Child by the Sea", 
+        "Still Life with Chair Caning", "Three Musicians", "The Three Dancers",
+        "The Crucifixion", "Girl before a Mirror", "Le Rêve", "Guernica",
+        "The Weeping Woman", "Night Fishing at Antibes", "The Charnel House",
+        "Massacre in Korea", "Don Quixote", "Les Femmes d'Alger", "Jacqueline with Flowers",
+        "The Rape of the Sabine Women", "Man and Woman", "Seated Woman",
+        "Bull's Head", "The Kitchen", "Woman with a Hat", "The Kiss",
+        "The Dance", "Bust of a Woman", "Dove of Peace", "Large Bather with a Book",
+        "Vollard Suite", "Bather with Beach Ball", "Harlequin", "Portrait of Olga in an Armchair",
+        "Reading the Letter", "Minotauromachy", "Mother and Child by the Sea",
         "Man with a Pipe", "Sleeping Peasants", "The Matador"
     ],
     "date_of_completion": [
@@ -71,3 +71,4 @@ cezanne = {
 }
 
 paintings = pd.concat([pd.DataFrame(picasso), pd.DataFrame(cezanne)])
+
