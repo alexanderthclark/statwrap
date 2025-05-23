@@ -1,6 +1,5 @@
 import unittest
 import pandas as pd
-import matplotlib.pyplot as plt
 from statwrap.fpp import apply_pd_changes, sd, standard_units, average, r, rms_size, var, sd_plus, var_plus
 
 
