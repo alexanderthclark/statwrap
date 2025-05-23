@@ -24,7 +24,7 @@ def get_microdata_link(file, year, multi_year=True):
 
     Examples
     --------
-    >>> get_atus_link('resp', 2023)
+    >>> get_microdata_link('resp', 2023)
     'https://www.bls.gov/tus/datafiles/atusresp-0323.zip'
     """
 
@@ -64,7 +64,7 @@ def read_zip(filepath):
 
     Examples
     --------
-    >>> df = read_atus_zip('atus_data.zip')
+    >>> df = read_zip('atus_data.zip')
     >>> df.head()
     """
     with ZipFile(filepath, 'r') as z:
