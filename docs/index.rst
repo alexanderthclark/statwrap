@@ -18,6 +18,7 @@ Find the source code on `GitHub <https://github.com/alexanderthclark/statwrap>`_
    sheets
    ux
    modules
+   getting_started
 
 Indices and tables
 ==================
