@@ -35,7 +35,7 @@ class DataUploadWidget(widgets.VBox):
         >>> output = widgets.Output()
         >>> with output:
         >>>     uploader = DataUploadWidget('df3', auto_display=False)
-        
+
         >>> display(output)
         >>> display(uploader)
     """
@@ -76,7 +76,7 @@ class DataUploadWidget(widgets.VBox):
         -------
         df : pandas.DataFrame
             The DataFrame created from the uploaded file.
-        
+
         Raises
         ------
         ValueError
@@ -85,12 +85,12 @@ class DataUploadWidget(widgets.VBox):
         # Check if a file was uploaded; raise an error if not
         if not self.uploader.value:
             raise ValueError("No file uploaded. Please upload a file before submitting.")
-        
+
         # Iterate over the uploaded files (only one expected since multiple=False)
         for filename, file_info in self.uploader.value.items():
             file_content = file_info['content']
             content_stream = io.BytesIO(file_content)  # Create a binary stream from the file content
-            
+
             # Extract the file extension to determine how to load the file
             file_extension = filename.split('.')[-1]
 

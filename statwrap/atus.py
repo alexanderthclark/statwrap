@@ -59,9 +59,9 @@ def read_zip(filepath):
 
     Notes
     -----
-    This function assumes that the .dat file within the ZIP archive has the same name as the 
+    This function assumes that the .dat file within the ZIP archive has the same name as the
     ZIP file, with the extension changed to `.dat` and any dashes replaced with underscores.
-    
+
     Examples
     --------
     >>> df = read_atus_zip('atus_data.zip')
@@ -72,3 +72,4 @@ def read_zip(filepath):
         dat = filepath.replace(".zip",'.dat').replace("-",'_')
         df = pd.read_csv(z.open(dat))
     return df
+

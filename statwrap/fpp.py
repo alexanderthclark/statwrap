@@ -84,7 +84,7 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     regression_line : bool, optional
         If True, a regression line will be added to the plot. Default is False.
     regression_equation: bool, optional
-    	If True, the equation of the regression line will be added to the top of the plot. Default is False. 
+    	If True, the equation of the regression line will be added to the top of the plot. Default is False.
     **kwargs : dict
         Additional keyword arguments passed to `matplotlib.pyplot.scatter`.
 
@@ -115,11 +115,11 @@ def scatter_plot(x, y, xlim=None, ylim=None,
     ax.scatter(x, y, **kwargs)
 
     m, b = np.polyfit(x, y, 1)  # Calculating the slope (m) and intercept (b) of the regression line
-    
-    if regression_line:    
+
+    if regression_line:
         ax.plot(x, m*x + b, color='gray')  # Plotting the regression line
 
-    if regression_equation: 
+    if regression_equation:
         equation_text = f'y = {m:.2f}x + {b:.2f}'  # Add regression line equation to plot
         ax.text(0.5, 1, equation_text, transform=ax.transAxes, fontsize=10,
                 verticalalignment='bottom', horizontalalignment='center', alpha=0.5)
@@ -330,7 +330,7 @@ def sd_plus(*args):
     a = args_to_array(args)
     if len(a) <= 1:
         raise ValueError("n <= 1, division by zero prohibited")
-    
+
     return np.std(a, ddof=1)
 
 @formula
@@ -427,7 +427,7 @@ def var_plus(*args):
     a = args_to_array(args)
     if len(a) <= 1:
         raise ValueError("n <= 1, division by zero prohibited")
-    
+
     return np.var(a, ddof=1)
 
 def change_std_behavior(pd_obj):
@@ -455,10 +455,10 @@ def histogram(*data_args, class_intervals=None, bins=None, density=True, xlim=No
     ----------
     data_args : array-like or sequence or array-likes or numeric scalars
         Input data to be plotted as a histogram.
-    
+
     class_intervals : int or sequence, optional
         The number of blocks or the interval edges if a sequence is provided. If not provided, defaults are used.
-    
+
     bins : int or sequence, optional
         Alternative name for class_intervals. class_intervals takes precedence is arguments are provided for both.
 
@@ -575,7 +575,7 @@ def contingency_table(data, column_1, column_2):
     --------
     >>> df = pd.read_csv("cps_categoricals_00.csv")
     >>> contingency_table(df, 'Industry', 'Geo_division')
-    
+
     (contingency table will appear in notebook output)
     """
     if column_1 not in data.columns:
@@ -585,3 +585,4 @@ def contingency_table(data, column_1, column_2):
 
     contingency_table = pd.crosstab(data[column_1], data[column_2])
     return contingency_table
+
