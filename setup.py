@@ -20,7 +20,7 @@ setuptools.setup(
         'Documentation': 'https://statwrap.readthedocs.io/'
     },
     author='Alexander Clark',
-    install_requires=['pandas','numpy','scipy', 'IPython', 'matplotlib', 'ipywidgets==7.7.1', 'odfpy', 'openpyxl'],
+    install_requires=['pandas','numpy','scipy', 'IPython', 'matplotlib', 'statsmodels', 'ipywidgets==7.7.1', 'odfpy', 'openpyxl'],
     author_email='',  # consider adding your email
     packages=setuptools.find_packages(),
     zip_safe=False,
