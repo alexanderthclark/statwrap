@@ -39,13 +39,13 @@ def linest(y, x, verbose = False):
 
     Returns
     -------
-    Hyperplane or RegressionLine, (Optional) Regression Summary
-        An object representing the estimated linear model. The coefficients
-        of the model are stored in the `coefficients` attribute of the
-        returned object, and the model can be called as a function to compute
-        predicted values. In the case of univariate regression, a
-        `RegressionLine` object is returned. If `verbose` is True, also returns
-        a summary of the regression analysis.
+    RegressionLine or tuple
+        Always returns a :class:`RegressionLine` representing the estimated
+        linear model. The coefficients of the model are stored in the
+        ``coefficients`` attribute of the returned object, and the model can
+        be called as a function to compute predicted values.  If ``verbose`` is
+        True, a tuple ``(RegressionLine, summary)`` is returned where
+        ``summary`` is the regression output from ``statsmodels``.
 
     Examples
     --------
