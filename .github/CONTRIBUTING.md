@@ -165,4 +165,4 @@ Thank you for considering contributing to `statwrap`. This guide outlines the pr
 
 ## License
 
-`statwrap` is licensed under the [MIT License](https://www.mit.edu/~amini/LICENSE.md).
+`statwrap` is licensed under the [BSD 3-Clause License](../LICENSE).
