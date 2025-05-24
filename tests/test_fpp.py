@@ -232,7 +232,7 @@ class TestVariancePlus(unittest.TestCase):
 
     def test_var_plus_division_error(self):
         with self.assertRaises(ValueError):
-            sd_plus(self.single_value)
+            var_plus(self.single_value)
 
     def test_var_plus_multiple_args(self):
         result = var_plus(*self.numbers_multiple)
