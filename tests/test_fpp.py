@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+import numpy as np
 from statwrap.fpp import (
     apply_pd_changes,
     sd,
@@ -272,6 +273,20 @@ class TestBoxModel(unittest.TestCase):
     def test_invalid_draws_float(self):
         with self.assertRaises(ValueError):
             box_model(1, 2, 3, draws=1.5)
+
+    def test_single_draw_returns_scalar(self):
+        result = box_model(1, 2, 3, draws=1)
+        self.assertIsInstance(result, (int, float, np.integer, np.floating))
+
+    def test_multiple_draws_returns_list(self):
+        result = box_model(1, 2, 3, draws=3)
+        self.assertIsInstance(result, list)
+
+    def test_random_seed_reproducibility(self):
+        result1 = box_model([1, 2], draws=2, random_seed=0)
+        result2 = box_model([1, 2], draws=2, random_seed=0)
+        self.assertEqual(result1, result2)
+
 
 
 class TestArgsToArray(unittest.TestCase):
