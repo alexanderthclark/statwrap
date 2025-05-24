@@ -6,6 +6,7 @@ import functools
 import re
 import pandas as pd
 import statwrap.fpp as fpp
+from .exceptions import SimplePlotError
 import matplotlib.pyplot as plt
 from statsmodels.graphics.regressionplots import (
     plot_partregress_grid,
@@ -378,7 +379,9 @@ class RegressionLine(Hyperplane):
         """Make a plot with regression line. Only works for simple linear regression."""
 
         if len(self.x.columns) != 2:
-            raise Exception("Unexpected number of columns. simple_plot only works for simple linear regression.")
+            raise SimplePlotError(
+                "plot() only works for simple linear regression with one predictor column"
+            )
         x = self.x.iloc[:,1]
 
         if ax is None:
