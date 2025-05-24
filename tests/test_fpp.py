@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+import numpy as np
 from statwrap.fpp import (
     apply_pd_changes,
     sd,
@@ -276,6 +277,23 @@ class TestBoxModel(unittest.TestCase):
     def test_random_seed_reproducibility(self):
         result1 = box_model([1, 2], draws=2, random_seed=0)
         result2 = box_model([1, 2], draws=2, random_seed=0)
+        self.assertEqual(result1, result2)
+
+    def test_single_draw_returns_scalar(self):
+        result = box_model(1, 2, 3, random_seed=1)
+        self.assertIsInstance(result, (int, float, np.integer, np.floating))
+
+    def test_without_replacement_unique(self):
+        result = box_model([1, 2, 3], draws=3, with_replacement=False, random_seed=0)
+        self.assertEqual(sorted(result), [1, 2, 3])
+
+    def test_draws_exceed_box_without_replacement(self):
+        with self.assertRaises(ValueError):
+            box_model([1, 2, 3], draws=4, with_replacement=False)
+
+    def test_iterable_vs_scalars_same_output(self):
+        result1 = box_model([1, 2, 3], draws=2, random_seed=5)
+        result2 = box_model(1, 2, 3, draws=2, random_seed=5)
         self.assertEqual(result1, result2)
 
 

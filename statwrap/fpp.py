@@ -41,16 +41,21 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
 
     Examples
     --------
-    >>> box_model([1,2,3,4,5,6], with_replacement=True, draws=3)
-    array([2, 5, 5])
+    >>> box_model([1, 2, 3, 4, 5, 6], with_replacement=True, draws=3)
+    [2, 5, 5]
 
-    >>> box_model((1,2,3,4,5,6), with_replacement=False, draws=3)
-    array([4, 2, 6])
+    >>> box_model((1, 2, 3, 4, 5, 6), with_replacement=False, draws=3)
+    [4, 2, 6]
     """
-    a = args_to_array(args)
+    a = np.array(args_to_array(args))
 
     if not isinstance(draws, (int, np.integer)) or draws < 1:
         raise ValueError("draws must be a positive integer")
+    if not with_replacement and draws > len(a):
+        raise ValueError(
+            "draws cannot exceed box size when sampling without replacement"
+        )
+
     if random_seed is not None:
         rng = np.random.default_rng(random_seed)
         X = rng.choice(a, replace=with_replacement, size=draws)
