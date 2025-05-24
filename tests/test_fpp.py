@@ -1,6 +1,17 @@
 import unittest
 import pandas as pd
-from statwrap.fpp import apply_pd_changes, sd, standard_units, average, r, rms_size, var, sd_plus, var_plus
+from statwrap.fpp import (
+    apply_pd_changes,
+    sd,
+    standard_units,
+    average,
+    r,
+    rms_size,
+    var,
+    sd_plus,
+    var_plus,
+    box_model,
+)
 
 
 class TestCorrelation(unittest.TestCase):
@@ -246,6 +257,28 @@ class TestVariancePlus(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+
+class TestBoxModel(unittest.TestCase):
+
+    def test_invalid_draws_zero(self):
+        with self.assertRaises(ValueError):
+            box_model(1, 2, 3, draws=0)
+
+    def test_invalid_draws_negative(self):
+        with self.assertRaises(ValueError):
+            box_model(1, 2, 3, draws=-1)
+
+    def test_invalid_draws_float(self):
+        with self.assertRaises(ValueError):
+            box_model(1, 2, 3, draws=1.5)
+
+
+class TestArgsToArray(unittest.TestCase):
+
+    def test_no_values_provided(self):
+        with self.assertRaises(ValueError):
+            average()
 
 if __name__ == "__main__":
     unittest.main()
