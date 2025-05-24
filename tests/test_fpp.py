@@ -273,6 +273,11 @@ class TestBoxModel(unittest.TestCase):
         with self.assertRaises(ValueError):
             box_model(1, 2, 3, draws=1.5)
 
+    def test_random_seed_reproducibility(self):
+        result1 = box_model([1, 2], draws=2, random_seed=0)
+        result2 = box_model([1, 2], draws=2, random_seed=0)
+        self.assertEqual(result1, result2)
+
 
 class TestArgsToArray(unittest.TestCase):
 

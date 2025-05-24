@@ -51,7 +51,7 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
 
     if not isinstance(draws, (int, np.integer)) or draws < 1:
         raise ValueError("draws must be a positive integer")
-    if random_seed:
+    if random_seed is not None:
         rng = np.random.default_rng(random_seed)
         X = rng.choice(a, replace=with_replacement, size=draws)
     else:
