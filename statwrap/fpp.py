@@ -22,7 +22,8 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
         Specifies whether drawing is done with replacement. Default is True,
         where numbers are replaced back into the box after each draw.
     draws : int, optional
-        The number of draws to be made from the box. Default is 1.
+        The number of draws to be made from the box. Must be a positive integer.
+        Default is 1.
     random_seed : int, optional
         The seed for the random number generator ensuring reproducibility of the
         random draws. By default, none is passed.
@@ -33,6 +34,11 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
         If `draws` is 1, returns a single value from the box. If `draws` is greater than 1,
         returns a list of length `draws`, containing the randomly drawn numbers from the box.
 
+    Raises
+    ------
+    ValueError
+        If `draws` is not a positive integer.
+
     Examples
     --------
     >>> box_model([1,2,3,4,5,6], with_replacement=True, draws=3)
@@ -42,6 +48,9 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
     array([4, 2, 6])
     """
     a = args_to_array(args)
+
+    if not isinstance(draws, (int, np.integer)) or draws < 1:
+        raise ValueError("draws must be a positive integer")
     if random_seed:
         rng = np.random.default_rng(random_seed)
         X = rng.choice(a, replace=with_replacement, size=draws)
