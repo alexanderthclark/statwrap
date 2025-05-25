@@ -14,6 +14,7 @@ Find the source code on `GitHub <https://github.com/alexanderthclark/statwrap>`_
    :maxdepth: 3
    :caption: Contents:
 
+   quickstart
    fpp
    sheets
    ux
