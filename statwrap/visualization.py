@@ -137,6 +137,37 @@ class LossSurface:
             raise ValueError(f"Estimator must have coef_ with shape (2,), got {None if c is None else c.shape}")
         return c
 
+    def _ensure_alphas(self, alphas, default):
+        """
+        Return a validated, ascending 1D float array of positive alphas.
+
+        Parameters
+        ----------
+        alphas : array-like or None
+            Candidate alpha values. If None, uses `default`.
+        default : array-like
+            Default alpha values to use when `alphas` is None.
+
+        Returns
+        -------
+        ndarray
+            1-D, strictly positive, finite, ascending array of alphas.
+
+        Raises
+        ------
+        ValueError
+            If alphas are not 1-D positive finite numbers.
+        """
+        if alphas is None:
+            alphas = np.asarray(default, dtype=float)
+        else:
+            alphas = np.asarray(alphas, dtype=float)
+        if alphas.ndim != 1 or not np.all(np.isfinite(alphas)) or np.any(alphas <= 0):
+            raise ValueError("alphas must be a 1-D array of positive, finite values")
+        if np.any(np.diff(alphas) < 0):
+            alphas = np.sort(alphas)
+        return alphas
+
     def _mse_grid(self, w1_range, w2_range):
         """
         Compute vectorized MSE grid with intercept optimized out.
@@ -155,14 +186,14 @@ class LossSurface:
         """
         W1, W2 = np.meshgrid(w1_range, w2_range)
         W = np.stack([W1.ravel(), W2.ravel()], axis=0)            # (2, M)
-        Yhat = self.X_centered @ W                                 # (n, M)
-        R = self.y_centered[:, None] - Yhat                        # (n, M)
-        Z = np.mean(R * R, axis=0).reshape(W1.shape)               # (g, g)
+        Yhat = self.X_centered @ W                                # (n, M)
+        R = self.y_centered[:, None] - Yhat                       # (n, M)
+        Z = np.mean(R * R, axis=0).reshape(W1.shape)              # (g, g)
         return W1, W2, Z
 
     # ------------------------- core plots -------------------------
 
-    def plot(self, plot_type='contour', ax=None):
+    def plot(self, plot_type='contour', ax=None, square=True):
         """
         Plot MSE surface with base model solution overlay.
 
@@ -172,6 +203,8 @@ class LossSurface:
             Type of plot to create. Default is 'contour'.
         ax : matplotlib.axes.Axes, optional
             Axes to plot on. If None, creates new figure.
+        square : bool, optional
+            If True and plot_type is 'contour', set equal aspect for square axes.
 
         Returns
         -------
@@ -209,6 +242,8 @@ class LossSurface:
         ax.set_xlabel('Weight 1')
         ax.set_ylabel('Weight 2')
         ax.set_title(f'{type(self.model).__name__} on Unregularized MSE Surface (intercept optimized)')
+        if square and plot_type != '3d':
+            ax.set_aspect('equal', adjustable='box')
         return ax
 
     def compare_models(self, other_models, labels=None, ax=None):
@@ -229,6 +264,9 @@ class LossSurface:
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
+        # Tolerate None
+        other_models = [] if other_models is None else list(other_models)
+
         # Base (already fitted or cloned+fitted)
         fitted = [self.model]
 
@@ -276,16 +314,42 @@ class LossSurface:
 
     # ------------------------- regularization paths -------------------------
 
-    def plot_ridge_path(self, alphas=None, show_loss_surface=True, ax=None):
+    def plot_ridge_path_on_surface(self, alphas=None, ax=None):
+        """Overlay the Ridge regularization path on the unregularized MSE surface."""
+        alphas = self._ensure_alphas(alphas, np.logspace(-3, 2, 20))
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+        fit_intercept = self.fit_intercept_pref_
+
+        # OLS baseline
+        ols = LinearRegression(fit_intercept=fit_intercept)
+        ols.fit(self.X, self.y)
+        coefs = [self._coef2(ols)]
+
+        rid = Ridge(alpha=alphas[0], fit_intercept=fit_intercept)
+        rid.fit(self.X, self.y)
+        path = [self._coef2(rid)]
+        for a in alphas[1:]:
+            rid.set_params(alpha=a)
+            rid.fit(self.X, self.y)
+            path.append(self._coef2(rid))
+
+        coefficients = np.vstack([coefs[0], np.vstack(path)])
+        self._plot_path_on_surface(coefficients,
+                                   alphas=np.r_[0.0, alphas],
+                                   title="Ridge Regularization Path",
+                                   ax=ax)
+        return ax
+
+    def plot_ridge_coef_path(self, alphas=None, ax=None):
         """
-        Plot Ridge regularization path from OLS to high penalty.
+        Plot Ridge coefficients vs α (semilog x), including the OLS point at α≈0.
 
         Parameters
         ----------
         alphas : array-like, optional
             Regularization strengths. If None, uses default range.
-        show_loss_surface : bool, optional
-            Whether to overlay path on MSE contour plot. Default is True.
         ax : matplotlib.axes.Axes, optional
             Axes to plot on. If None, creates new figure.
 
@@ -294,29 +358,25 @@ class LossSurface:
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
-        if alphas is None:
-            alphas = np.logspace(-3, 2, 20)
+        alphas = self._ensure_alphas(alphas, np.logspace(-3, 2, 20))
 
         fit_intercept = self.fit_intercept_pref_
         # OLS baseline
         ols = LinearRegression(fit_intercept=fit_intercept)
         ols.fit(self.X, self.y)
-        coefs = [self._coef2(ols)]
+        start = [self._coef2(ols)]
 
-        # Ridge path
-        coefficients = []
-        for a in alphas:
-            rid = Ridge(alpha=a, fit_intercept=fit_intercept)
+        rid = Ridge(alpha=alphas[0], fit_intercept=fit_intercept)
+        rid.fit(self.X, self.y)
+        path = [self._coef2(rid)]
+        for a in alphas[1:]:
+            rid.set_params(alpha=a)
             rid.fit(self.X, self.y)
-            coefficients.append(self._coef2(rid))
-        coefficients = np.vstack([coefs[0], np.vstack(coefficients)])
-
-        # Overlay on surface
-        if show_loss_surface:
-            self._plot_path_on_surface(coefficients, np.r_[0.0, alphas], "Ridge Regularization Path")
+            path.append(self._coef2(rid))
+        coefficients = np.vstack([start[0], np.vstack(path)])
 
         # Plot vs alpha (semilog x); place OLS at small epsilon
-        eps = alphas[0] * 0.1
+        eps = float(alphas[0]) * 0.1
         x_alphas = np.r_[eps, alphas]
 
         if ax is None:
@@ -332,57 +392,75 @@ class LossSurface:
         ax.grid(True, alpha=0.3)
         return ax
 
-    def plot_lasso_path(self, alphas=None, show_loss_surface=True, ax=None):
+    def _lasso_path_coeffs(self, alphas):
         """
-        Plot Lasso regularization path from OLS to high penalty.
+        Compute Lasso path coefficients including the OLS baseline (α=0) as the first row.
+        Respects this instance's fit_intercept preference. Uses a single warm-started
+        Lasso instance for stability along the path.
 
         Parameters
         ----------
-        alphas : array-like, optional
-            Regularization strengths. If None, uses default range.
-        show_loss_surface : bool, optional
-            Whether to overlay path on MSE contour plot. Default is True.
-        ax : matplotlib.axes.Axes, optional
-            Axes to plot on. If None, creates new figure.
+        alphas : array-like of positive floats
 
         Returns
         -------
-        matplotlib.axes.Axes
-            The axes object containing the plot.
+        np.ndarray, shape (len(alphas)+1, 2)
+            Rows are [OLS, Lasso(α1), Lasso(α2), ...]
         """
-        if alphas is None:
-            alphas = np.logspace(-3, 1, 20)
+        alphas = self._ensure_alphas(alphas, np.logspace(-3, 1, 20))
 
         fit_intercept = self.fit_intercept_pref_
-        # OLS baseline
+
+        # OLS baseline (α=0)
         ols = LinearRegression(fit_intercept=fit_intercept)
         ols.fit(self.X, self.y)
-        base_coef = self._coef2(ols)
+        coeffs = [self._coef2(ols)]
 
-        # Single Lasso instance with warm start for stability
-        las = Lasso(alpha=alphas[0], fit_intercept=fit_intercept, max_iter=10000, warm_start=True)
+        las = Lasso(alpha=alphas[0], fit_intercept=fit_intercept, max_iter=10000)
         las.fit(self.X, self.y)
-
-        coefs = [base_coef, self._coef2(las)]
+        coeffs.append(self._coef2(las))
         for a in alphas[1:]:
             las.set_params(alpha=a)
             las.fit(self.X, self.y)
-            coefs.append(self._coef2(las))
-        coefficients = np.vstack(coefs)
+            coeffs.append(self._coef2(las))
 
-        # Overlay on surface
-        if show_loss_surface:
-            self._plot_path_on_surface(coefficients, np.r_[0.0, alphas], "Lasso Regularization Path")
+        return np.vstack(coeffs)
 
-        # Plot vs alpha with ε for OLS
-        eps = alphas[0] * 0.1
+    def plot_lasso_path_on_surface(self, alphas=None, ax=None):
+        """
+        Overlay the Lasso regularization path on the unregularized MSE surface
+        (intercept optimized). Includes the OLS point (α=0) at the start.
+        """
+        alphas = self._ensure_alphas(alphas, np.logspace(-3, 1, 20))
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(10, 6))
+
+        coefficients = self._lasso_path_coeffs(alphas)
+        self._plot_path_on_surface(
+            coefficients=coefficients,
+            alphas=np.r_[0.0, alphas],
+            title="Lasso Regularization Path",
+            ax=ax
+        )
+        return ax
+
+    def plot_lasso_coef_path(self, alphas=None, ax=None):
+        """
+        Plot Lasso coefficients vs α (semilog x), including the OLS point at α≈0.
+        """
+        alphas = self._ensure_alphas(alphas, np.logspace(-3, 1, 20))
+
+        coefficients = self._lasso_path_coeffs(alphas)
+
+        # Place OLS at a small positive epsilon so it appears on a log x-axis
+        eps = float(alphas[0]) * 0.1
         x_alphas = np.r_[eps, alphas]
 
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 6))
         ax.semilogx(x_alphas, coefficients[:, 0], 'o-', label='Weight 1', markersize=4)
         ax.semilogx(x_alphas, coefficients[:, 1], 's-', label='Weight 2', markersize=4)
-        ax.axvline(eps, linestyle=':', alpha=0.3)
+        ax.axvline(eps, linestyle=':', alpha=0.3)  # indicates OLS location
         ax.axhline(0, color='k', linestyle='--', alpha=0.3)
         ax.set_xlabel('α')
         ax.set_ylabel('Coefficient')
@@ -430,7 +508,7 @@ class LossSurface:
         except Exception:
             pass
 
-        ax.plot(coefficients[:, 0], coefficients[:, 1], 'r-', linewidth=2, alpha=0.85, label='Path')
+        ax.plot(coefficients[:, 0], coefficients[:, 1], 'r-', marker='.', linewidth=2, alpha=0.85, label='Path')
         ax.scatter(coefficients[0, 0], coefficients[0, 1], color='green', s=100, marker='*',
                    label=f'Start (α={alphas[0]:.3g})')
         ax.scatter(coefficients[-1, 0], coefficients[-1, 1], color='red', s=100, marker='s',
@@ -442,4 +520,3 @@ class LossSurface:
         ax.legend()
         ax.grid(True, alpha=0.3)
         return ax
-
