@@ -4,7 +4,7 @@ from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.base import clone
 
 
-class LossSurfacePlotter:
+class LossSurface:
     """
     Visualize (unregularized) MSE loss surfaces for two-coefficient linear models.
 
@@ -91,7 +91,19 @@ class LossSurfacePlotter:
 
     @staticmethod
     def _get_fit_intercept_pref(est):
-        # Try to read estimator's fit_intercept preference; default True if unknown
+        """
+        Extract fit_intercept preference from estimator, default True.
+
+        Parameters
+        ----------
+        est : sklearn estimator
+            Fitted or unfitted estimator.
+
+        Returns
+        -------
+        bool
+            The fit_intercept preference, defaulting to True.
+        """
         try:
             params = est.get_params(deep=False)
             if "fit_intercept" in params:
@@ -102,6 +114,24 @@ class LossSurfacePlotter:
 
     @staticmethod
     def _coef2(est):
+        """
+        Extract and validate 2-coefficient array from fitted estimator.
+
+        Parameters
+        ----------
+        est : sklearn estimator
+            Fitted estimator with coef_ attribute.
+
+        Returns
+        -------
+        ndarray, shape (2,)
+            The coefficient array.
+
+        Raises
+        ------
+        ValueError
+            If estimator doesn't have exactly 2 coefficients.
+        """
         c = np.asarray(getattr(est, "coef_", None))
         if c is None or c.ndim != 1 or c.size != 2:
             raise ValueError(f"Estimator must have coef_ with shape (2,), got {None if c is None else c.shape}")
@@ -109,8 +139,19 @@ class LossSurfacePlotter:
 
     def _mse_grid(self, w1_range, w2_range):
         """
-        Vectorized MSE surface with intercept optimized out:
-            MSE(w) = mean( (y_c - X_c @ w)^2 )
+        Compute vectorized MSE grid with intercept optimized out.
+
+        Parameters
+        ----------
+        w1_range : array-like
+            Values for first coefficient.
+        w2_range : array-like
+            Values for second coefficient.
+
+        Returns
+        -------
+        tuple of ndarray
+            (W1, W2, Z) where W1, W2 are meshgrids and Z is the MSE surface.
         """
         W1, W2 = np.meshgrid(w1_range, w2_range)
         W = np.stack([W1.ravel(), W2.ravel()], axis=0)            # (2, M)
@@ -123,9 +164,19 @@ class LossSurfacePlotter:
 
     def plot(self, plot_type='contour', ax=None):
         """
-        Plot the *unregularized* MSE surface (intercept optimized out) and overlay the base solution.
+        Plot MSE surface with base model solution overlay.
 
-        plot_type: 'contour' or '3d'
+        Parameters
+        ----------
+        plot_type : {'contour', '3d'}, optional
+            Type of plot to create. Default is 'contour'.
+        ax : matplotlib.axes.Axes, optional
+            Axes to plot on. If None, creates new figure.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot.
         """
         w1_opt, w2_opt = self.w_opt_
 
@@ -162,7 +213,21 @@ class LossSurfacePlotter:
 
     def compare_models(self, other_models, labels=None, ax=None):
         """
-        Fit clones of other_models on (X, y) and overlay their solutions on the same MSE surface.
+        Compare multiple model solutions on the same MSE surface.
+
+        Parameters
+        ----------
+        other_models : list of sklearn estimators
+            Additional models to fit and compare.
+        labels : list of str, optional
+            Labels for the models. If None, uses class names.
+        ax : matplotlib.axes.Axes, optional
+            Axes to plot on. If None, creates new figure.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot.
         """
         # Base (already fitted or cloned+fitted)
         fitted = [self.model]
@@ -213,9 +278,21 @@ class LossSurfacePlotter:
 
     def plot_ridge_path(self, alphas=None, show_loss_surface=True, ax=None):
         """
-        Plot Ridge coefficient path vs alpha (including OLS at alpha≈0), using the
-        base model's fit_intercept preference if available. Overlay path on the same
-        unregularized MSE surface if requested.
+        Plot Ridge regularization path from OLS to high penalty.
+
+        Parameters
+        ----------
+        alphas : array-like, optional
+            Regularization strengths. If None, uses default range.
+        show_loss_surface : bool, optional
+            Whether to overlay path on MSE contour plot. Default is True.
+        ax : matplotlib.axes.Axes, optional
+            Axes to plot on. If None, creates new figure.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot.
         """
         if alphas is None:
             alphas = np.logspace(-3, 2, 20)
@@ -257,9 +334,21 @@ class LossSurfacePlotter:
 
     def plot_lasso_path(self, alphas=None, show_loss_surface=True, ax=None):
         """
-        Plot Lasso coefficient path vs alpha (including OLS at alpha≈0), using the
-        base model's fit_intercept preference if available. Overlay path on the same
-        unregularized MSE surface if requested.
+        Plot Lasso regularization path from OLS to high penalty.
+
+        Parameters
+        ----------
+        alphas : array-like, optional
+            Regularization strengths. If None, uses default range.
+        show_loss_surface : bool, optional
+            Whether to overlay path on MSE contour plot. Default is True.
+        ax : matplotlib.axes.Axes, optional
+            Axes to plot on. If None, creates new figure.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot.
         """
         if alphas is None:
             alphas = np.logspace(-3, 1, 20)
@@ -306,8 +395,23 @@ class LossSurfacePlotter:
 
     def _plot_path_on_surface(self, coefficients, alphas, title, ax=None):
         """
-        Overlay a coefficient path on the same unregularized MSE surface
-        (intercept optimized). `coefficients` is (n_points, 2); `alphas` same length.
+        Overlay coefficient path on MSE contour plot.
+
+        Parameters
+        ----------
+        coefficients : array-like, shape (n_points, 2)
+            Coefficient values along the regularization path.
+        alphas : array-like, shape (n_points,)
+            Regularization parameter values.
+        title : str
+            Title for the plot.
+        ax : matplotlib.axes.Axes, optional
+            Axes to plot on. If None, creates new figure.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot.
         """
         w1_min = coefficients[:, 0].min() - 0.5
         w1_max = coefficients[:, 0].max() + 0.5
