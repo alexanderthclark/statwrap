@@ -5,7 +5,68 @@ from sklearn.datasets import make_regression
 from sklearn.preprocessing import StandardScaler
 
 class LossSurfacePlotter:
-    """Visualize loss surfaces for two-coefficient regression models"""
+    """
+    Visualize loss surfaces for two-coefficient regression models.
+
+    This class provides educational visualization tools for understanding how
+    regression models find optimal coefficients by exploring the loss landscape.
+    Designed specifically for students learning optimization concepts in machine learning.
+
+    The loss surface shows how the Mean Squared Error (MSE) changes as we vary
+    the two slope coefficients of a linear regression model. The data is automatically
+    centered to make the intercept approximately zero, simplifying the visualization.
+
+    Parameters
+    ----------
+    model : sklearn estimator
+        A fitted or unfitted scikit-learn regression model with exactly 2 features.
+        Supports LinearRegression, Ridge, Lasso, and other linear models.
+    X : array-like of shape (n_samples, 2)
+        Training input samples. Must have exactly 2 features for visualization.
+    y : array-like of shape (n_samples,)
+        Target values for regression.
+    loss_range : float, optional
+        The range around optimal coefficients to visualize. Default is 2.0.
+        Larger values show more of the loss landscape but may be less detailed.
+    grid_size : int, optional
+        Number of points along each axis for the loss surface grid. Default is 50.
+        Higher values create smoother visualizations but take longer to compute.
+    refit : bool, optional
+        If True, refit the model on centered data even if already fitted. Default is False.
+
+    Attributes
+    ----------
+    model : sklearn estimator
+        The regression model used for visualization.
+    X_centered : ndarray
+        Input features centered to have zero mean.
+    y_centered : ndarray
+        Target values centered to have zero mean.
+    loss_range : float
+        Range around optimal coefficients for visualization.
+    grid_size : int
+        Number of grid points for loss surface calculation.
+
+    Examples
+    --------
+    >>> from sklearn.linear_model import LinearRegression
+    >>> from sklearn.datasets import make_regression
+    >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
+    >>> model = LinearRegression()
+    >>> plotter = LossSurfacePlotter(model, X, y)
+    >>> ax = plotter.plot()  # Creates a contour plot of the loss surface
+
+    Notes
+    -----
+    The class automatically centers both X and y to have zero mean. This makes
+    the intercept approximately zero, allowing us to focus on visualizing how
+    the two slope coefficients affect the loss function.
+
+    All plotting methods follow pandas DataFrame.plot() conventions:
+    - Accept an optional `ax` parameter for plotting on existing axes
+    - Return axes objects for further customization
+    - Do not automatically call plt.show() - users control when to display plots
+    """
 
     def __init__(self, model, X, y, loss_range=2.0, grid_size=50, refit=False):
         self.model = model
@@ -28,7 +89,46 @@ class LossSurfacePlotter:
             model.fit(self.X_centered, self.y_centered)
 
     def plot(self, plot_type='contour', ax=None):
-        """Plot the loss surface over two slope coefficients"""
+        """
+        Create a visualization of the loss surface for the regression model.
+
+        This method creates either a 2D contour plot or 3D surface plot showing how
+        the Mean Squared Error (MSE) loss changes as we vary the two slope coefficients.
+        The optimal coefficients found by the model are highlighted with a red marker.
+
+        Parameters
+        ----------
+        plot_type : str, optional
+            Type of plot to create. Default is 'contour'.
+            - 'contour' : 2D contour plot showing loss level curves
+            - '3d' : 3D surface plot showing the loss landscape
+        ax : matplotlib.axes.Axes, optional
+            Existing axes to plot on. If None, new axes will be created. Default is None.
+            For 3D plots, the axes must have projection='3d'.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot. Can be used for further customization.
+
+        Examples
+        --------
+        >>> from sklearn.linear_model import LinearRegression
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
+        >>> model = LinearRegression()
+        >>> plotter = LossSurfacePlotter(model, X, y)
+        >>> ax = plotter.plot()  # Creates a 2D contour plot
+        >>> ax = plotter.plot(plot_type='3d')  # Creates a 3D surface plot
+
+        Notes
+        -----
+        The contour plot shows level curves of constant loss, similar to a topographic map.
+        The 3D surface plot provides a more intuitive view of the loss landscape but may
+        be harder to read precise values from.
+
+        The red marker indicates the optimal coefficients found by the model.
+        """
         # Get optimal coefficients (intercept should be ~0 after centering)
         w1_opt, w2_opt = self.model.coef_
 
@@ -70,7 +170,49 @@ class LossSurfacePlotter:
         return ax
 
     def compare_models(self, other_models, labels=None, ax=None):
-        """Compare multiple models on the same loss surface"""
+        """
+        Compare multiple regression models on the same loss surface.
+
+        This method plots the loss surface for the base model and overlays the
+        optimal coefficients found by different regression models. This helps
+        students understand how different regularization techniques (like Ridge
+        and Lasso) find different optimal solutions on the same loss landscape.
+
+        Parameters
+        ----------
+        other_models : list of sklearn estimators
+            Additional regression models to compare. These will be fitted on the
+            same centered data as the base model.
+        labels : list of str, optional
+            Labels for each model in the legend. If None, uses the class names.
+            Should have length equal to len(other_models) + 1 (for the base model).
+        ax : matplotlib.axes.Axes, optional
+            Existing axes to plot on. If None, new axes will be created. Default is None.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot. Can be used for further customization.
+
+        Examples
+        --------
+        >>> from sklearn.linear_model import LinearRegression, Ridge, Lasso
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
+        >>> base_model = LinearRegression()
+        >>> plotter = LossSurfacePlotter(base_model, X, y)
+        >>> ridge = Ridge(alpha=1.0)
+        >>> lasso = Lasso(alpha=0.1)
+        >>> ax = plotter.compare_models([ridge, lasso])
+
+        Notes
+        -----
+        Each model's optimal coefficients are shown as colored points on the loss surface.
+        The base model (used to initialize the plotter) is included automatically.
+
+        This visualization helps illustrate how regularization moves the optimal
+        solution away from the unregularized (OLS) minimum to reduce overfitting.
+        """
         all_models = [self.model] + list(other_models)
         if labels is None:
             labels = [type(m).__name__ for m in all_models]
@@ -116,7 +258,51 @@ class LossSurfacePlotter:
 
 
     def plot_ridge_path(self, alphas=None, show_loss_surface=True, ax=None):
-        """Show Ridge regularization path on loss surface"""
+        """
+        Visualize how Ridge regularization affects coefficient values.
+
+        This method shows how the optimal coefficients change as we increase the
+        Ridge regularization strength (alpha). Students can see how regularization
+        smoothly shrinks coefficients toward zero to prevent overfitting.
+
+        Parameters
+        ----------
+        alphas : array-like, optional
+            Regularization strength values to explore. If None, uses a logarithmic
+            range from 0.001 to 100. Default is None.
+        show_loss_surface : bool, optional
+            If True, also creates a separate plot showing the regularization path
+            overlaid on the loss surface. Default is True.
+        ax : matplotlib.axes.Axes, optional
+            Existing axes to plot the coefficient paths on. If None, new axes will
+            be created. Default is None.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the coefficient path plot. Can be used for
+            further customization.
+
+        Examples
+        --------
+        >>> from sklearn.linear_model import LinearRegression
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
+        >>> model = LinearRegression()
+        >>> plotter = LossSurfacePlotter(model, X, y)
+        >>> ax = plotter.plot_ridge_path()
+
+        Notes
+        -----
+        Ridge regularization applies an L2 penalty that shrinks coefficients toward
+        zero. Unlike Lasso, Ridge never sets coefficients exactly to zero.
+
+        The plot shows coefficient values on the y-axis versus regularization strength
+        on the x-axis (log scale). As alpha increases, coefficients shrink smoothly.
+
+        If show_loss_surface=True, a separate figure shows how the optimal solution
+        moves along a curved path on the loss surface as regularization increases.
+        """
         if alphas is None:
             alphas = np.logspace(-3, 2, 20)  # 0.001 to 100
 
@@ -151,7 +337,53 @@ class LossSurfacePlotter:
         return ax
 
     def plot_lasso_path(self, alphas=None, show_loss_surface=True, ax=None):
-        """Show Lasso regularization path on loss surface"""
+        """
+        Visualize how Lasso regularization affects coefficient values.
+
+        This method shows how the optimal coefficients change as we increase the
+        Lasso regularization strength (alpha). Students can see how Lasso creates
+        sparse solutions by setting some coefficients exactly to zero.
+
+        Parameters
+        ----------
+        alphas : array-like, optional
+            Regularization strength values to explore. If None, uses a logarithmic
+            range from 0.001 to 10. Default is None.
+        show_loss_surface : bool, optional
+            If True, also creates a separate plot showing the regularization path
+            overlaid on the loss surface. Default is True.
+        ax : matplotlib.axes.Axes, optional
+            Existing axes to plot the coefficient paths on. If None, new axes will
+            be created. Default is None.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the coefficient path plot. Can be used for
+            further customization.
+
+        Examples
+        --------
+        >>> from sklearn.linear_model import LinearRegression
+        >>> from sklearn.datasets import make_regression
+        >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
+        >>> model = LinearRegression()
+        >>> plotter = LossSurfacePlotter(model, X, y)
+        >>> ax = plotter.plot_lasso_path()
+
+        Notes
+        -----
+        Lasso regularization applies an L1 penalty that can set coefficients exactly
+        to zero, creating sparse models. This is different from Ridge, which only
+        shrinks coefficients toward zero.
+
+        The plot shows coefficient values on the y-axis versus regularization strength
+        on the x-axis (log scale). As alpha increases, coefficients may hit zero
+        and stay there, creating a "path" with sharp corners.
+
+        If show_loss_surface=True, a separate figure shows how the optimal solution
+        moves along a path with sharp corners on the loss surface due to the L1 penalty.
+        """
         if alphas is None:
             alphas = np.logspace(-3, 1, 20)  # 0.001 to 10
 
@@ -186,7 +418,40 @@ class LossSurfacePlotter:
         return ax
 
     def _plot_path_on_surface(self, coefficients, alphas, title, ax=None):
-        """Helper method to plot regularization path on loss surface"""
+        """
+        Helper method to plot regularization path overlaid on loss surface.
+
+        This private method creates a visualization showing how regularization
+        moves the optimal solution along a path on the loss surface. The path
+        starts at the unregularized (OLS) solution and moves as regularization
+        strength increases.
+
+        Parameters
+        ----------
+        coefficients : ndarray of shape (n_alphas, 2)
+            Array of coefficient pairs for each regularization strength.
+        alphas : array-like
+            Regularization strength values corresponding to the coefficients.
+        title : str
+            Title for the plot.
+        ax : matplotlib.axes.Axes, optional
+            Existing axes to plot on. If None, new axes will be created. Default is None.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes object containing the plot. Can be used for further customization.
+
+        Notes
+        -----
+        This method is called internally by plot_ridge_path() and plot_lasso_path()
+        when show_loss_surface=True. It provides an intuitive view of how
+        regularization affects the optimization landscape.
+
+        The green star marks the unregularized (OLS) solution, the red square
+        marks the highly regularized solution, and the red line shows the path
+        between them.
+        """
         # Calculate loss surface
         w1_min, w1_max = coefficients[:, 0].min() - 0.5, coefficients[:, 0].max() + 0.5
         w2_min, w2_max = coefficients[:, 1].min() - 0.5, coefficients[:, 1].max() + 0.5
