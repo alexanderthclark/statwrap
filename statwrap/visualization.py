@@ -168,6 +168,42 @@ class LossSurface:
             alphas = np.sort(alphas)
         return alphas
 
+    def evaluate_loss(self, coefficients, intercept=None):
+        """
+        Evaluate MSE loss at specific coefficient and intercept values.
+
+        Parameters
+        ----------
+        coefficients : array-like, shape (2,)
+            The two coefficient values to evaluate.
+        intercept : float, optional
+            The intercept value. If None, uses the model's intercept.
+
+        Returns
+        -------
+        float
+            The mean squared error at the given coefficients and intercept.
+
+        Raises
+        ------
+        ValueError
+            If coefficients is not a 2-element array.
+        """
+        coefficients = np.asarray(coefficients, dtype=float)
+        if coefficients.ndim != 1 or coefficients.size != 2:
+            raise ValueError(f"coefficients must be a 2-element array, got shape {coefficients.shape}")
+
+        if intercept is None:
+            intercept = self.intercept_opt_
+
+        # Compute predictions: y_pred = X @ coef + intercept
+        y_pred = self.X @ coefficients + intercept
+
+        # Compute MSE: mean((y - y_pred)^2)
+        mse = np.mean((self.y - y_pred) ** 2)
+
+        return float(mse)
+
     def _mse_grid(self, w1_range, w2_range):
         """
         Compute vectorized MSE grid with intercept optimized out.
