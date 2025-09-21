@@ -37,7 +37,7 @@ class LossSurface:
 
     # ------------------------- initialization -------------------------
 
-    def __init__(self, model, X, y, loss_range=2.0, grid_size=50):
+    def __init__(self, model, X, y, loss_range=3.0, grid_size=50):
         # Coerce inputs
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float).ravel()
@@ -229,7 +229,7 @@ class LossSurface:
 
     # ------------------------- core plots -------------------------
 
-    def plot(self, plot_type='contour', ax=None, square=True):
+    def plot(self, plot_type='contour', ax=None, square=True, grid_size=None, loss_range=None):
         """
         Plot MSE surface with base model solution overlay.
 
@@ -241,6 +241,12 @@ class LossSurface:
             Axes to plot on. If None, creates new figure.
         square : bool, optional
             If True and plot_type is 'contour', set equal aspect for square axes.
+        grid_size : int, optional
+            Resolution of the coefficient grid to use for this call. Defaults to the
+            value provided at initialization.
+        loss_range : float, optional
+            Half-width of the coefficient window around the base point. Defaults to the
+            value provided at initialization.
 
         Returns
         -------
@@ -249,8 +255,22 @@ class LossSurface:
         """
         w1_opt, w2_opt = self.w_opt_
 
-        w1_range = np.linspace(w1_opt - self.loss_range, w1_opt + self.loss_range, self.grid_size)
-        w2_range = np.linspace(w2_opt - self.loss_range, w2_opt + self.loss_range, self.grid_size)
+        if grid_size is None:
+            grid_size = self.grid_size
+        else:
+            grid_size = int(grid_size)
+            if grid_size < 2:
+                raise ValueError("grid_size must be an integer >= 2")
+
+        if loss_range is None:
+            loss_range = self.loss_range
+        else:
+            loss_range = float(loss_range)
+            if loss_range <= 0:
+                raise ValueError("loss_range must be a positive number")
+
+        w1_range = np.linspace(w1_opt - loss_range, w1_opt + loss_range, grid_size)
+        w2_range = np.linspace(w2_opt - loss_range, w2_opt + loss_range, grid_size)
         W1, W2, Z = self._mse_grid(w1_range, w2_range)
 
         if plot_type == '3d':
