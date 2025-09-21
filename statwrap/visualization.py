@@ -1,493 +1,341 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.datasets import make_regression
-from sklearn.preprocessing import StandardScaler
+from sklearn.base import clone
+
 
 class LossSurfacePlotter:
     """
-    Visualize loss surfaces for two-coefficient regression models.
+    Visualize (unregularized) MSE loss surfaces for two-coefficient linear models.
 
-    This class provides educational visualization tools for understanding how
-    regression models find optimal coefficients by exploring the loss landscape.
-    Designed specifically for students learning optimization concepts in machine learning.
-
-    The loss surface shows how the Mean Squared Error (MSE) changes as we vary
-    the two slope coefficients of a linear regression model. The data is automatically
-    centered to make the intercept approximately zero, simplifying the visualization.
+    Key idea: the surface plotted is the cross-section of the MSE where the intercept
+    has been optimized out (i.e., intercept = ȳ - wᵀ x̄). This is equivalent to
+    computing MSE on centered data (X - x̄, y - ȳ), regardless of whether the
+    original estimator used an intercept. If the provided model is already fitted,
+    we *inherit its fit_intercept semantics and coefficients* for the overlay point.
 
     Parameters
     ----------
-    model : sklearn estimator
-        A fitted or unfitted scikit-learn regression model with exactly 2 features.
-        Supports LinearRegression, Ridge, Lasso, and other linear models.
-    X : array-like of shape (n_samples, 2)
-        Training input samples. Must have exactly 2 features for visualization.
-    y : array-like of shape (n_samples,)
-        Target values for regression.
-    loss_range : float, optional
-        The range around optimal coefficients to visualize. Default is 2.0.
-        Larger values show more of the loss landscape but may be less detailed.
-    grid_size : int, optional
-        Number of points along each axis for the loss surface grid. Default is 50.
-        Higher values create smoother visualizations but take longer to compute.
-    refit : bool, optional
-        If True, refit the model on centered data even if already fitted. Default is False.
-
-    Attributes
-    ----------
-    model : sklearn estimator
-        The regression model used for visualization.
-    X_centered : ndarray
-        Input features centered to have zero mean.
-    y_centered : ndarray
-        Target values centered to have zero mean.
+    model : sklearn estimator (LinearRegression, Ridge, Lasso, etc.)
+        A fitted or unfitted estimator with exactly 2 coefficients.
+        If unfitted, a cloned copy will be fit on (X, y) to obtain the base point.
+        If already fitted, we do not refit and we reuse its coefficients/intercept.
+    X : array-like, shape (n_samples, 2)
+    y : array-like, shape (n_samples,)
     loss_range : float
-        Range around optimal coefficients for visualization.
+        Half-width of the coefficient window around the base point.
     grid_size : int
-        Number of grid points for loss surface calculation.
-
-    Examples
-    --------
-    >>> from sklearn.linear_model import LinearRegression
-    >>> from sklearn.datasets import make_regression
-    >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
-    >>> model = LinearRegression()
-    >>> plotter = LossSurfacePlotter(model, X, y)
-    >>> ax = plotter.plot()  # Creates a contour plot of the loss surface
+        Resolution of the (w1, w2) grid.
 
     Notes
     -----
-    The class automatically centers both X and y to have zero mean. This makes
-    the intercept approximately zero, allowing us to focus on visualizing how
-    the two slope coefficients affect the loss function.
-
-    All plotting methods follow pandas DataFrame.plot() conventions:
-    - Accept an optional `ax` parameter for plotting on existing axes
-    - Return axes objects for further customization
-    - Do not automatically call plt.show() - users control when to display plots
+    - The contour/surface is always the *unregularized* MSE with the intercept
+      optimized out (i.e., centered-data MSE). Points/paths from Ridge/Lasso are
+      overlaid on this surface.
+    - No mutation of the passed-in model: if refitting is needed, a clone is used.
     """
 
-    def __init__(self, model, X, y, loss_range=2.0, grid_size=50, refit=False):
-        self.model = model
-        self.loss_range = loss_range
-        self.grid_size = grid_size
+    # ------------------------- initialization -------------------------
 
-        # Ensure we have exactly 2 features
-        if X.shape[1] != 2:
-            raise ValueError("Loss surface visualization requires exactly 2 features")
+    def __init__(self, model, X, y, loss_range=2.0, grid_size=50):
+        # Coerce inputs
+        X = np.asarray(X, dtype=float)
+        y = np.asarray(y, dtype=float).ravel()
 
-        # Demean X and y to make intercept ~zero
-        self.X_centered = X - X.mean(axis=0)
-        self.y_centered = y - y.mean()
+        if X.ndim != 2 or X.shape[1] != 2:
+            raise ValueError("X must be of shape (n_samples, 2)")
+        if X.shape[0] != y.shape[0]:
+            raise ValueError(f"X and y must have the same number of samples: {X.shape[0]} vs {y.shape[0]}")
 
-        # Fit the model on centered data
-        if not hasattr(model, 'coef_'):
-            model.fit(self.X_centered, self.y_centered)
-        elif refit:
-            # Re-fit on centered data even if already fitted
-            model.fit(self.X_centered, self.y_centered)
+        self.loss_range = float(loss_range)
+        self.grid_size = int(grid_size)
+
+        # Store centered data for surface calculations (intercept optimized out)
+        self.x_mean_ = X.mean(axis=0)
+        self.y_mean_ = y.mean()
+        self.X_centered = X - self.x_mean_
+        self.y_centered = y - self.y_mean_
+
+        # Keep original (uncentered) too, for fitting models in their native semantics
+        self.X = X
+        self.y = y
+
+        # Determine whether model is already fitted
+        self.original_model = model
+        self.model = None  # fitted base model used for overlay/labels
+        self.prefit_ = hasattr(model, "coef_")
+
+        if self.prefit_:
+            coef = np.asarray(model.coef_)
+            if coef.ndim != 1 or coef.size != 2:
+                raise ValueError(f"Prefit model must have exactly 2 coefficients; got {coef.shape}")
+            # Reuse the fitted model directly (no mutation)
+            self.model = model
+        else:
+            # Fit a clone on (X, y) with its own intercept semantics preserved
+            self.model = clone(model)
+            self.model.fit(self.X, self.y)
+            coef = np.asarray(self.model.coef_)
+            if coef.ndim != 1 or coef.size != 2:
+                raise ValueError(f"Model must yield exactly 2 coefficients after fit; got {coef.shape}")
+
+        # Base point (overlay star and grid center)
+        self.w_opt_ = np.asarray(self.model.coef_, dtype=float).reshape(2)
+        # In case caller wants it:
+        self.intercept_opt_ = float(getattr(self.model, "intercept_", 0.0))
+
+        # Cache fit_intercept preference (used for paths); inherit if available
+        self.fit_intercept_pref_ = self._get_fit_intercept_pref(self.model)
+
+    # ------------------------- utilities -------------------------
+
+    @staticmethod
+    def _get_fit_intercept_pref(est):
+        # Try to read estimator's fit_intercept preference; default True if unknown
+        try:
+            params = est.get_params(deep=False)
+            if "fit_intercept" in params:
+                return bool(params["fit_intercept"])
+        except Exception:
+            pass
+        return bool(getattr(est, "fit_intercept", True))
+
+    @staticmethod
+    def _coef2(est):
+        c = np.asarray(getattr(est, "coef_", None))
+        if c is None or c.ndim != 1 or c.size != 2:
+            raise ValueError(f"Estimator must have coef_ with shape (2,), got {None if c is None else c.shape}")
+        return c
+
+    def _mse_grid(self, w1_range, w2_range):
+        """
+        Vectorized MSE surface with intercept optimized out:
+            MSE(w) = mean( (y_c - X_c @ w)^2 )
+        """
+        W1, W2 = np.meshgrid(w1_range, w2_range)
+        W = np.stack([W1.ravel(), W2.ravel()], axis=0)            # (2, M)
+        Yhat = self.X_centered @ W                                 # (n, M)
+        R = self.y_centered[:, None] - Yhat                        # (n, M)
+        Z = np.mean(R * R, axis=0).reshape(W1.shape)               # (g, g)
+        return W1, W2, Z
+
+    # ------------------------- core plots -------------------------
 
     def plot(self, plot_type='contour', ax=None):
         """
-        Create a visualization of the loss surface for the regression model.
+        Plot the *unregularized* MSE surface (intercept optimized out) and overlay the base solution.
 
-        This method creates either a 2D contour plot or 3D surface plot showing how
-        the Mean Squared Error (MSE) loss changes as we vary the two slope coefficients.
-        The optimal coefficients found by the model are highlighted with a red marker.
-
-        Parameters
-        ----------
-        plot_type : str, optional
-            Type of plot to create. Default is 'contour'.
-            - 'contour' : 2D contour plot showing loss level curves
-            - '3d' : 3D surface plot showing the loss landscape
-        ax : matplotlib.axes.Axes, optional
-            Existing axes to plot on. If None, new axes will be created. Default is None.
-            For 3D plots, the axes must have projection='3d'.
-
-        Returns
-        -------
-        matplotlib.axes.Axes
-            The axes object containing the plot. Can be used for further customization.
-
-        Examples
-        --------
-        >>> from sklearn.linear_model import LinearRegression
-        >>> from sklearn.datasets import make_regression
-        >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
-        >>> model = LinearRegression()
-        >>> plotter = LossSurfacePlotter(model, X, y)
-        >>> ax = plotter.plot()  # Creates a 2D contour plot
-        >>> ax = plotter.plot(plot_type='3d')  # Creates a 3D surface plot
-
-        Notes
-        -----
-        The contour plot shows level curves of constant loss, similar to a topographic map.
-        The 3D surface plot provides a more intuitive view of the loss landscape but may
-        be harder to read precise values from.
-
-        The red marker indicates the optimal coefficients found by the model.
+        plot_type: 'contour' or '3d'
         """
-        # Get optimal coefficients (intercept should be ~0 after centering)
-        w1_opt, w2_opt = self.model.coef_
+        w1_opt, w2_opt = self.w_opt_
 
-        # Create coefficient grid
         w1_range = np.linspace(w1_opt - self.loss_range, w1_opt + self.loss_range, self.grid_size)
         w2_range = np.linspace(w2_opt - self.loss_range, w2_opt + self.loss_range, self.grid_size)
-        W1, W2 = np.meshgrid(w1_range, w2_range)
+        W1, W2, Z = self._mse_grid(w1_range, w2_range)
 
-        # Calculate loss surface (MSE)
-        def mse_loss(w1, w2):
-            y_pred = w1 * self.X_centered[:, 0] + w2 * self.X_centered[:, 1]
-            return np.mean((self.y_centered - y_pred) ** 2)
-
-        Z = np.array([[mse_loss(w1, w2) for w1 in w1_range] for w2 in w2_range])
-
-        # Plot
         if plot_type == '3d':
-            from mpl_toolkits.mplot3d import Axes3D
+            # (Axes3D import is not required on modern Matplotlib; projection='3d' suffices)
             if ax is None:
                 fig = plt.figure(figsize=(10, 8))
                 ax = fig.add_subplot(111, projection='3d')
             ax.plot_surface(W1, W2, Z, alpha=0.7, cmap='viridis')
-            optimal_loss = mse_loss(w1_opt, w2_opt)
-            ax.scatter(w1_opt, w2_opt, optimal_loss, color='red', s=100)
-            ax.set_zlabel('MSE Loss')
+            # Loss at base coefficients on the same cross-section
+            base_loss = np.mean((self.y_centered - (w1_opt*self.X_centered[:, 0] + w2_opt*self.X_centered[:, 1]))**2)
+            ax.scatter(w1_opt, w2_opt, base_loss, color='red', s=100)
+            ax.set_zlabel('MSE (intercept optimized)')
         else:
             if ax is None:
                 fig, ax = plt.subplots(figsize=(8, 6))
-            contour = ax.contour(W1, W2, Z, levels=20)
-            ax.clabel(contour, inline=True, fontsize=8)
+            cs = ax.contour(W1, W2, Z, levels=20)
+            try:
+                ax.clabel(cs, inline=True, fontsize=8)
+            except Exception:
+                pass
             ax.scatter(w1_opt, w2_opt, color='red', s=100, marker='*',
-                       label=f'Optimal: ({w1_opt:.2f}, {w2_opt:.2f})')
+                       label=f'Base: ({w1_opt:.2f}, {w2_opt:.2f})')
             ax.legend()
 
-        ax.set_xlabel('Weight 1 (Feature 1 Coefficient)')
-        ax.set_ylabel('Weight 2 (Feature 2 Coefficient)')
-        ax.set_title(f'{type(self.model).__name__} Loss Surface')
-
+        ax.set_xlabel('Weight 1')
+        ax.set_ylabel('Weight 2')
+        ax.set_title(f'{type(self.model).__name__} on Unregularized MSE Surface (intercept optimized)')
         return ax
 
     def compare_models(self, other_models, labels=None, ax=None):
         """
-        Compare multiple regression models on the same loss surface.
-
-        This method plots the loss surface for the base model and overlays the
-        optimal coefficients found by different regression models. This helps
-        students understand how different regularization techniques (like Ridge
-        and Lasso) find different optimal solutions on the same loss landscape.
-
-        Parameters
-        ----------
-        other_models : list of sklearn estimators
-            Additional regression models to compare. These will be fitted on the
-            same centered data as the base model.
-        labels : list of str, optional
-            Labels for each model in the legend. If None, uses the class names.
-            Should have length equal to len(other_models) + 1 (for the base model).
-        ax : matplotlib.axes.Axes, optional
-            Existing axes to plot on. If None, new axes will be created. Default is None.
-
-        Returns
-        -------
-        matplotlib.axes.Axes
-            The axes object containing the plot. Can be used for further customization.
-
-        Examples
-        --------
-        >>> from sklearn.linear_model import LinearRegression, Ridge, Lasso
-        >>> from sklearn.datasets import make_regression
-        >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
-        >>> base_model = LinearRegression()
-        >>> plotter = LossSurfacePlotter(base_model, X, y)
-        >>> ridge = Ridge(alpha=1.0)
-        >>> lasso = Lasso(alpha=0.1)
-        >>> ax = plotter.compare_models([ridge, lasso])
-
-        Notes
-        -----
-        Each model's optimal coefficients are shown as colored points on the loss surface.
-        The base model (used to initialize the plotter) is included automatically.
-
-        This visualization helps illustrate how regularization moves the optimal
-        solution away from the unregularized (OLS) minimum to reduce overfitting.
+        Fit clones of other_models on (X, y) and overlay their solutions on the same MSE surface.
         """
-        all_models = [self.model] + list(other_models)
+        # Base (already fitted or cloned+fitted)
+        fitted = [self.model]
+
+        # Clone and fit others on *original* (X, y) to respect their own intercept semantics
+        for m in other_models:
+            mm = clone(m)
+            mm.fit(self.X, self.y)
+            _ = self._coef2(mm)
+            fitted.append(mm)
+
+        # Labels
         if labels is None:
-            labels = [type(m).__name__ for m in all_models]
+            labels = [type(m).__name__ for m in fitted]
+        if len(labels) != len(fitted):
+            raise ValueError("labels length must equal number of models (base + others)")
 
-        # Fit all models on centered data
-        for model in other_models:
-            model.fit(self.X_centered, self.y_centered)
-
-        # Get coefficient ranges from all models
-        all_coefs = np.array([m.coef_ for m in all_models])
-        w1_min, w1_max = all_coefs[:, 0].min() - self.loss_range, all_coefs[:, 0].max() + self.loss_range
-        w2_min, w2_max = all_coefs[:, 1].min() - self.loss_range, all_coefs[:, 1].max() + self.loss_range
+        # Build grid bounds from all coefs
+        all_coefs = np.vstack([self._coef2(m) for m in fitted])
+        w1_min = all_coefs[:, 0].min() - self.loss_range
+        w1_max = all_coefs[:, 0].max() + self.loss_range
+        w2_min = all_coefs[:, 1].min() - self.loss_range
+        w2_max = all_coefs[:, 1].max() + self.loss_range
 
         w1_range = np.linspace(w1_min, w1_max, self.grid_size)
         w2_range = np.linspace(w2_min, w2_max, self.grid_size)
-        W1, W2 = np.meshgrid(w1_range, w2_range)
+        W1, W2, Z = self._mse_grid(w1_range, w2_range)
 
-        # Calculate loss surface
-        def mse_loss(w1, w2):
-            y_pred = w1 * self.X_centered[:, 0] + w2 * self.X_centered[:, 1]
-            return np.mean((self.y_centered - y_pred) ** 2)
-
-        Z = np.array([[mse_loss(w1, w2) for w1 in w1_range] for w2 in w2_range])
-
-        # Plot with all model solutions
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 8))
-        contour = ax.contour(W1, W2, Z, levels=20, alpha=0.6)
-        ax.clabel(contour, inline=True, fontsize=8)
+        cs = ax.contour(W1, W2, Z, levels=20, alpha=0.6)
+        try:
+            ax.clabel(cs, inline=True, fontsize=8)
+        except Exception:
+            pass
 
-        colors = ['red', 'blue', 'green', 'orange', 'purple']
-        for i, (model, label) in enumerate(zip(all_models, labels)):
-            w1, w2 = model.coef_
-            ax.scatter(w1, w2, color=colors[i % len(colors)], s=100,
-                       label=f'{label}: ({w1:.2f}, {w2:.2f})')
+        for m, lab in zip(fitted, labels):
+            w = self._coef2(m)
+            ax.scatter(w[0], w[1], s=100, label=f'{lab}: ({w[0]:.2f}, {w[1]:.2f})')
 
-        ax.set_xlabel('Weight 1 (Feature 1 Coefficient)')
-        ax.set_ylabel('Weight 2 (Feature 2 Coefficient)')
-        ax.set_title('Model Comparison on Loss Surface')
+        ax.set_xlabel('Weight 1')
+        ax.set_ylabel('Weight 2')
+        ax.set_title('Model Solutions on Unregularized MSE Surface (intercept optimized)')
         ax.legend()
-
         return ax
 
+    # ------------------------- regularization paths -------------------------
 
     def plot_ridge_path(self, alphas=None, show_loss_surface=True, ax=None):
         """
-        Visualize how Ridge regularization affects coefficient values.
-
-        This method shows how the optimal coefficients change as we increase the
-        Ridge regularization strength (alpha). Students can see how regularization
-        smoothly shrinks coefficients toward zero to prevent overfitting.
-
-        Parameters
-        ----------
-        alphas : array-like, optional
-            Regularization strength values to explore. If None, uses a logarithmic
-            range from 0.001 to 100. Default is None.
-        show_loss_surface : bool, optional
-            If True, also creates a separate plot showing the regularization path
-            overlaid on the loss surface. Default is True.
-        ax : matplotlib.axes.Axes, optional
-            Existing axes to plot the coefficient paths on. If None, new axes will
-            be created. Default is None.
-
-        Returns
-        -------
-        matplotlib.axes.Axes
-            The axes object containing the coefficient path plot. Can be used for
-            further customization.
-
-        Examples
-        --------
-        >>> from sklearn.linear_model import LinearRegression
-        >>> from sklearn.datasets import make_regression
-        >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
-        >>> model = LinearRegression()
-        >>> plotter = LossSurfacePlotter(model, X, y)
-        >>> ax = plotter.plot_ridge_path()
-
-        Notes
-        -----
-        Ridge regularization applies an L2 penalty that shrinks coefficients toward
-        zero. Unlike Lasso, Ridge never sets coefficients exactly to zero.
-
-        The plot shows coefficient values on the y-axis versus regularization strength
-        on the x-axis (log scale). As alpha increases, coefficients shrink smoothly.
-
-        If show_loss_surface=True, a separate figure shows how the optimal solution
-        moves along a curved path on the loss surface as regularization increases.
+        Plot Ridge coefficient path vs alpha (including OLS at alpha≈0), using the
+        base model's fit_intercept preference if available. Overlay path on the same
+        unregularized MSE surface if requested.
         """
         if alphas is None:
-            alphas = np.logspace(-3, 2, 20)  # 0.001 to 100
+            alphas = np.logspace(-3, 2, 20)
 
-        ridge_models = []
+        fit_intercept = self.fit_intercept_pref_
+        # OLS baseline
+        ols = LinearRegression(fit_intercept=fit_intercept)
+        ols.fit(self.X, self.y)
+        coefs = [self._coef2(ols)]
+
+        # Ridge path
         coefficients = []
+        for a in alphas:
+            rid = Ridge(alpha=a, fit_intercept=fit_intercept)
+            rid.fit(self.X, self.y)
+            coefficients.append(self._coef2(rid))
+        coefficients = np.vstack([coefs[0], np.vstack(coefficients)])
 
-        # Fit Ridge for different alpha values
-        for alpha in alphas:
-            ridge = Ridge(alpha=alpha)
-            ridge.fit(self.X_centered, self.y_centered)
-            ridge_models.append(ridge)
-            coefficients.append(ridge.coef_)
-
-        coefficients = np.array(coefficients)
-
+        # Overlay on surface
         if show_loss_surface:
-            # Plot on loss surface
-            self._plot_path_on_surface(coefficients, alphas, "Ridge Regularization Path")
+            self._plot_path_on_surface(coefficients, np.r_[0.0, alphas], "Ridge Regularization Path")
 
-        # Plot coefficient paths vs alpha
+        # Plot vs alpha (semilog x); place OLS at small epsilon
+        eps = alphas[0] * 0.1
+        x_alphas = np.r_[eps, alphas]
+
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 6))
-        ax.semilogx(alphas, coefficients[:, 0], 'b-o', label='Weight 1', markersize=4)
-        ax.semilogx(alphas, coefficients[:, 1], 'r-s', label='Weight 2', markersize=4)
-        ax.axhline(y=0, color='k', linestyle='--', alpha=0.3)
-        ax.set_xlabel('Regularization Strength (α)')
-        ax.set_ylabel('Coefficient Value')
-        ax.set_title('Ridge Coefficient Path')
+        ax.semilogx(x_alphas, coefficients[:, 0], 'o-', label='Weight 1', markersize=4)
+        ax.semilogx(x_alphas, coefficients[:, 1], 's-', label='Weight 2', markersize=4)
+        ax.axvline(eps, linestyle=':', alpha=0.3)  # indicates OLS location
+        ax.axhline(0, color='k', linestyle='--', alpha=0.3)
+        ax.set_xlabel('α')
+        ax.set_ylabel('Coefficient')
+        ax.set_title('Ridge Coefficient Path (includes OLS at α≈0)')
         ax.legend()
         ax.grid(True, alpha=0.3)
-
         return ax
 
     def plot_lasso_path(self, alphas=None, show_loss_surface=True, ax=None):
         """
-        Visualize how Lasso regularization affects coefficient values.
-
-        This method shows how the optimal coefficients change as we increase the
-        Lasso regularization strength (alpha). Students can see how Lasso creates
-        sparse solutions by setting some coefficients exactly to zero.
-
-        Parameters
-        ----------
-        alphas : array-like, optional
-            Regularization strength values to explore. If None, uses a logarithmic
-            range from 0.001 to 10. Default is None.
-        show_loss_surface : bool, optional
-            If True, also creates a separate plot showing the regularization path
-            overlaid on the loss surface. Default is True.
-        ax : matplotlib.axes.Axes, optional
-            Existing axes to plot the coefficient paths on. If None, new axes will
-            be created. Default is None.
-
-        Returns
-        -------
-        matplotlib.axes.Axes
-            The axes object containing the coefficient path plot. Can be used for
-            further customization.
-
-        Examples
-        --------
-        >>> from sklearn.linear_model import LinearRegression
-        >>> from sklearn.datasets import make_regression
-        >>> X, y = make_regression(n_samples=100, n_features=2, noise=10, random_state=42)
-        >>> model = LinearRegression()
-        >>> plotter = LossSurfacePlotter(model, X, y)
-        >>> ax = plotter.plot_lasso_path()
-
-        Notes
-        -----
-        Lasso regularization applies an L1 penalty that can set coefficients exactly
-        to zero, creating sparse models. This is different from Ridge, which only
-        shrinks coefficients toward zero.
-
-        The plot shows coefficient values on the y-axis versus regularization strength
-        on the x-axis (log scale). As alpha increases, coefficients may hit zero
-        and stay there, creating a "path" with sharp corners.
-
-        If show_loss_surface=True, a separate figure shows how the optimal solution
-        moves along a path with sharp corners on the loss surface due to the L1 penalty.
+        Plot Lasso coefficient path vs alpha (including OLS at alpha≈0), using the
+        base model's fit_intercept preference if available. Overlay path on the same
+        unregularized MSE surface if requested.
         """
         if alphas is None:
-            alphas = np.logspace(-3, 1, 20)  # 0.001 to 10
+            alphas = np.logspace(-3, 1, 20)
 
-        lasso_models = []
-        coefficients = []
+        fit_intercept = self.fit_intercept_pref_
+        # OLS baseline
+        ols = LinearRegression(fit_intercept=fit_intercept)
+        ols.fit(self.X, self.y)
+        base_coef = self._coef2(ols)
 
-        # Fit Lasso for different alpha values
-        for alpha in alphas:
-            lasso = Lasso(alpha=alpha, max_iter=2000)
-            lasso.fit(self.X_centered, self.y_centered)
-            lasso_models.append(lasso)
-            coefficients.append(lasso.coef_)
+        # Single Lasso instance with warm start for stability
+        las = Lasso(alpha=alphas[0], fit_intercept=fit_intercept, max_iter=10000, warm_start=True)
+        las.fit(self.X, self.y)
 
-        coefficients = np.array(coefficients)
+        coefs = [base_coef, self._coef2(las)]
+        for a in alphas[1:]:
+            las.set_params(alpha=a)
+            las.fit(self.X, self.y)
+            coefs.append(self._coef2(las))
+        coefficients = np.vstack(coefs)
 
+        # Overlay on surface
         if show_loss_surface:
-            # Plot on loss surface
-            self._plot_path_on_surface(coefficients, alphas, "Lasso Regularization Path")
+            self._plot_path_on_surface(coefficients, np.r_[0.0, alphas], "Lasso Regularization Path")
 
-        # Plot coefficient paths vs alpha
+        # Plot vs alpha with ε for OLS
+        eps = alphas[0] * 0.1
+        x_alphas = np.r_[eps, alphas]
+
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 6))
-        ax.semilogx(alphas, coefficients[:, 0], 'b-o', label='Weight 1', markersize=4)
-        ax.semilogx(alphas, coefficients[:, 1], 'r-s', label='Weight 2', markersize=4)
-        ax.axhline(y=0, color='k', linestyle='--', alpha=0.3)
-        ax.set_xlabel('Regularization Strength (α)')
-        ax.set_ylabel('Coefficient Value')
-        ax.set_title('Lasso Coefficient Path')
+        ax.semilogx(x_alphas, coefficients[:, 0], 'o-', label='Weight 1', markersize=4)
+        ax.semilogx(x_alphas, coefficients[:, 1], 's-', label='Weight 2', markersize=4)
+        ax.axvline(eps, linestyle=':', alpha=0.3)
+        ax.axhline(0, color='k', linestyle='--', alpha=0.3)
+        ax.set_xlabel('α')
+        ax.set_ylabel('Coefficient')
+        ax.set_title('Lasso Coefficient Path (includes OLS at α≈0)')
         ax.legend()
         ax.grid(True, alpha=0.3)
-
         return ax
+
+    # ------------------------- helper for path overlay -------------------------
 
     def _plot_path_on_surface(self, coefficients, alphas, title, ax=None):
         """
-        Helper method to plot regularization path overlaid on loss surface.
-
-        This private method creates a visualization showing how regularization
-        moves the optimal solution along a path on the loss surface. The path
-        starts at the unregularized (OLS) solution and moves as regularization
-        strength increases.
-
-        Parameters
-        ----------
-        coefficients : ndarray of shape (n_alphas, 2)
-            Array of coefficient pairs for each regularization strength.
-        alphas : array-like
-            Regularization strength values corresponding to the coefficients.
-        title : str
-            Title for the plot.
-        ax : matplotlib.axes.Axes, optional
-            Existing axes to plot on. If None, new axes will be created. Default is None.
-
-        Returns
-        -------
-        matplotlib.axes.Axes
-            The axes object containing the plot. Can be used for further customization.
-
-        Notes
-        -----
-        This method is called internally by plot_ridge_path() and plot_lasso_path()
-        when show_loss_surface=True. It provides an intuitive view of how
-        regularization affects the optimization landscape.
-
-        The green star marks the unregularized (OLS) solution, the red square
-        marks the highly regularized solution, and the red line shows the path
-        between them.
+        Overlay a coefficient path on the same unregularized MSE surface
+        (intercept optimized). `coefficients` is (n_points, 2); `alphas` same length.
         """
-        # Calculate loss surface
-        w1_min, w1_max = coefficients[:, 0].min() - 0.5, coefficients[:, 0].max() + 0.5
-        w2_min, w2_max = coefficients[:, 1].min() - 0.5, coefficients[:, 1].max() + 0.5
+        w1_min = coefficients[:, 0].min() - 0.5
+        w1_max = coefficients[:, 0].max() + 0.5
+        w2_min = coefficients[:, 1].min() - 0.5
+        w2_max = coefficients[:, 1].max() + 0.5
 
         w1_range = np.linspace(w1_min, w1_max, self.grid_size)
         w2_range = np.linspace(w2_min, w2_max, self.grid_size)
-        W1, W2 = np.meshgrid(w1_range, w2_range)
+        W1, W2, Z = self._mse_grid(w1_range, w2_range)
 
-        def mse_loss(w1, w2):
-            y_pred = w1 * self.X_centered[:, 0] + w2 * self.X_centered[:, 1]
-            return np.mean((self.y_centered - y_pred) ** 2)
-
-        Z = np.array([[mse_loss(w1, w2) for w1 in w1_range] for w2 in w2_range])
-
-        # Plot loss surface with path
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 8))
-        contour = ax.contour(W1, W2, Z, levels=15, alpha=0.6)
-        ax.clabel(contour, inline=True, fontsize=8)
+        cs = ax.contour(W1, W2, Z, levels=15, alpha=0.6)
+        try:
+            ax.clabel(cs, inline=True, fontsize=8)
+        except Exception:
+            pass
 
-        # Plot the regularization path
-        ax.plot(coefficients[:, 0], coefficients[:, 1], 'ro-',
-                linewidth=2, markersize=6, alpha=0.8, label='Regularization Path')
+        ax.plot(coefficients[:, 0], coefficients[:, 1], 'r-', linewidth=2, alpha=0.85, label='Path')
+        ax.scatter(coefficients[0, 0], coefficients[0, 1], color='green', s=100, marker='*',
+                   label=f'Start (α={alphas[0]:.3g})')
+        ax.scatter(coefficients[-1, 0], coefficients[-1, 1], color='red', s=100, marker='s',
+                   label=f'End (α={alphas[-1]:.3g})')
 
-        # Mark OLS solution (alpha=0, should be first point)
-        ax.scatter(coefficients[0, 0], coefficients[0, 1],
-                   color='green', s=100, marker='*', label='OLS Solution')
-
-        # Mark high regularization endpoint
-        ax.scatter(coefficients[-1, 0], coefficients[-1, 1],
-                   color='red', s=100, marker='s', label=f'α={alphas[-1]:.3f}')
-
-        ax.set_xlabel('Weight 1 (Feature 1 Coefficient)')
-        ax.set_ylabel('Weight 2 (Feature 2 Coefficient)')
-        ax.set_title(title)
+        ax.set_xlabel('Weight 1')
+        ax.set_ylabel('Weight 2')
+        ax.set_title(f'{title} on Unregularized MSE Surface (intercept optimized)')
         ax.legend()
         ax.grid(True, alpha=0.3)
-
         return ax
+
