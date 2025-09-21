@@ -4,6 +4,7 @@ scipy
 IPython
 matplotlib
 statsmodels
+scikit-learn
 ipywidgets==7.7.1
 odfpy
 openpyxl
