@@ -168,6 +168,16 @@ class LossSurface:
             alphas = np.sort(alphas)
         return alphas
 
+    def _resolve_loss_range(self, loss_range):
+        """Return a validated loss_range value for plotting windows."""
+        if loss_range is None:
+            loss_range = self.loss_range
+        else:
+            loss_range = float(loss_range)
+            if loss_range <= 0:
+                raise ValueError("loss_range must be a positive number")
+        return float(loss_range)
+
     def evaluate_loss(self, coefficients, intercept=None):
         """
         Evaluate MSE loss at specific coefficient and intercept values.
@@ -370,12 +380,24 @@ class LossSurface:
 
     # ------------------------- regularization paths -------------------------
 
-    def plot_ridge_path_on_surface(self, alphas=None, ax=None):
-        """Overlay the Ridge regularization path on the unregularized MSE surface."""
+    def plot_ridge_path_on_surface(self, alphas=None, ax=None, loss_range=None):
+        """Overlay the Ridge regularization path on the unregularized MSE surface.
+
+        Parameters
+        ----------
+        alphas : array-like, optional
+            Regularization strengths. If None, uses a log-spaced default.
+        ax : matplotlib.axes.Axes, optional
+            Axes to plot on. If None, creates a new figure.
+        loss_range : float, optional
+            Half-width of the coefficient window around the base point. Defaults to
+            the value provided at initialization.
+        """
         alphas = self._ensure_alphas(alphas, np.logspace(-3, 2, 20))
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 6))
 
+        loss_range = self._resolve_loss_range(loss_range)
         fit_intercept = self.fit_intercept_pref_
 
         # OLS baseline
@@ -395,7 +417,8 @@ class LossSurface:
         self._plot_path_on_surface(coefficients,
                                    alphas=np.r_[0.0, alphas],
                                    title="Ridge Regularization Path",
-                                   ax=ax)
+                                   ax=ax,
+                                   loss_range=loss_range)
         return ax
 
     def plot_ridge_coef_path(self, alphas=None, ax=None):
@@ -482,21 +505,33 @@ class LossSurface:
 
         return np.vstack(coeffs)
 
-    def plot_lasso_path_on_surface(self, alphas=None, ax=None):
+    def plot_lasso_path_on_surface(self, alphas=None, ax=None, loss_range=None):
         """
         Overlay the Lasso regularization path on the unregularized MSE surface
         (intercept optimized). Includes the OLS point (α=0) at the start.
+
+        Parameters
+        ----------
+        alphas : array-like, optional
+            Regularization strengths. If None, uses a log-spaced default.
+        ax : matplotlib.axes.Axes, optional
+            Axes to plot on. If None, creates a new figure.
+        loss_range : float, optional
+            Half-width of the coefficient window around the base point. Defaults to
+            the value provided at initialization.
         """
         alphas = self._ensure_alphas(alphas, np.logspace(-3, 1, 20))
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 6))
 
+        loss_range = self._resolve_loss_range(loss_range)
         coefficients = self._lasso_path_coeffs(alphas)
         self._plot_path_on_surface(
             coefficients=coefficients,
             alphas=np.r_[0.0, alphas],
             title="Lasso Regularization Path",
-            ax=ax
+            ax=ax,
+            loss_range=loss_range
         )
         return ax
 
@@ -527,7 +562,7 @@ class LossSurface:
 
     # ------------------------- helper for path overlay -------------------------
 
-    def _plot_path_on_surface(self, coefficients, alphas, title, ax=None):
+    def _plot_path_on_surface(self, coefficients, alphas, title, ax=None, loss_range=None):
         """
         Overlay coefficient path on MSE contour plot.
 
@@ -541,19 +576,20 @@ class LossSurface:
             Title for the plot.
         ax : matplotlib.axes.Axes, optional
             Axes to plot on. If None, creates new figure.
+        loss_range : float, optional
+            Half-width of the coefficient window around the base point. Defaults to
+            the value provided at initialization.
 
         Returns
         -------
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
-        w1_min = coefficients[:, 0].min() - 0.5
-        w1_max = coefficients[:, 0].max() + 0.5
-        w2_min = coefficients[:, 1].min() - 0.5
-        w2_max = coefficients[:, 1].max() + 0.5
+        loss_range = self._resolve_loss_range(loss_range)
+        center = np.asarray(self.w_opt_, dtype=float).reshape(2)
 
-        w1_range = np.linspace(w1_min, w1_max, self.grid_size)
-        w2_range = np.linspace(w2_min, w2_max, self.grid_size)
+        w1_range = np.linspace(center[0] - loss_range, center[0] + loss_range, self.grid_size)
+        w2_range = np.linspace(center[1] - loss_range, center[1] + loss_range, self.grid_size)
         W1, W2, Z = self._mse_grid(w1_range, w2_range)
 
         if ax is None:
