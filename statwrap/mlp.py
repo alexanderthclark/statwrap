@@ -16,18 +16,9 @@ module lightweight and easy to understand.  The focus is on fully-connected
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, List
+from typing import Callable
 
 import numpy as np
-
-
-try:  # Optional dependency used for interactive plots
-    import plotly.express as px
-
-    _HAS_PLOTLY = True
-except Exception:  # pragma: no cover - optional dependency
-    _HAS_PLOTLY = False
-
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -43,6 +34,10 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 ArrayLike = np.ndarray
 
+# Module-level constants
+SPARSITY_THRESHOLD = 1e-6  # Threshold for considering activations as zero
+STD_EPSILON = 1e-9  # Small constant to prevent division by zero in std calculations
+
 
 def _ensure_2d(X: ArrayLike) -> ArrayLike:
     X = np.asarray(X)
@@ -51,35 +46,83 @@ def _ensure_2d(X: ArrayLike) -> ArrayLike:
     return X
 
 
+# Activation function implementations
+def _logistic_forward(Z: ArrayLike) -> ArrayLike:
+    return 1.0 / (1.0 + np.exp(-Z))
+
+
+def _tanh_forward(Z: ArrayLike) -> ArrayLike:
+    return np.tanh(Z)
+
+
+def _relu_forward(Z: ArrayLike) -> ArrayLike:
+    return np.maximum(0.0, Z)
+
+
+def _identity_forward(Z: ArrayLike) -> ArrayLike:
+    return Z
+
+
+def _softmax_forward(Z: ArrayLike) -> ArrayLike:
+    Z = np.asarray(Z)
+    shift = Z - Z.max(axis=1, keepdims=True)
+    exp = np.exp(shift)
+    return exp / exp.sum(axis=1, keepdims=True)
+
+
+def _logistic_backward(Z: ArrayLike, A: ArrayLike) -> ArrayLike:
+    return A * (1.0 - A)
+
+
+def _tanh_backward(Z: ArrayLike, A: ArrayLike) -> ArrayLike:
+    return 1.0 - A**2
+
+
+def _relu_backward(Z: ArrayLike, A: ArrayLike) -> ArrayLike:
+    return (Z > 0).astype(Z.dtype)
+
+
+def _identity_backward(Z: ArrayLike, A: ArrayLike) -> ArrayLike:
+    return np.ones_like(Z)
+
+
+# Activation function dispatch dictionaries
+_ACTIVATION_FORWARD = {
+    "logistic": _logistic_forward,
+    "tanh": _tanh_forward,
+    "relu": _relu_forward,
+    "identity": _identity_forward,
+    "softmax": _softmax_forward,
+}
+
+_ACTIVATION_BACKWARD = {
+    "logistic": _logistic_backward,
+    "tanh": _tanh_backward,
+    "relu": _relu_backward,
+    "identity": _identity_backward,
+}
+
+
 def _activation_forward(name: str, Z: ArrayLike) -> ArrayLike:
-    if name == "logistic":
-        return 1.0 / (1.0 + np.exp(-Z))
-    if name == "tanh":
-        return np.tanh(Z)
-    if name == "relu":
-        return np.maximum(0.0, Z)
-    if name == "identity":
-        return Z
-    if name == "softmax":
-        Z = np.asarray(Z)
-        shift = Z - Z.max(axis=1, keepdims=True)
-        exp = np.exp(shift)
-        return exp / exp.sum(axis=1, keepdims=True)
-    raise ValueError(f"Unsupported activation '{name}'.")
+    """Apply forward activation function."""
+    if name not in _ACTIVATION_FORWARD:
+        raise ValueError(
+            f"Unsupported activation '{name}'. "
+            f"Supported activations: {', '.join(_ACTIVATION_FORWARD.keys())}"
+        )
+    return _ACTIVATION_FORWARD[name](Z)
 
 
 def _activation_backward(name: str, Z: ArrayLike, A: ArrayLike) -> ArrayLike:
-    if name == "logistic":
-        return A * (1.0 - A)
-    if name == "tanh":
-        return 1.0 - A**2
-    if name == "relu":
-        return (Z > 0).astype(Z.dtype)
-    if name == "identity":
-        return np.ones_like(Z)
+    """Apply backward activation derivative (element-wise)."""
     if name == "softmax":
         raise ValueError("Softmax derivative requires full Jacobian; handle separately.")
-    raise ValueError(f"Unsupported activation '{name}'.")
+    if name not in _ACTIVATION_BACKWARD:
+        raise ValueError(
+            f"Unsupported activation '{name}'. "
+            f"Supported activations: {', '.join(_ACTIVATION_BACKWARD.keys())}"
+        )
+    return _ACTIVATION_BACKWARD[name](Z, A)
 
 
 def _maybe_square_shape(n_features: int) -> tuple[int, int] | None:
@@ -149,17 +192,24 @@ class MLPInspector:
             if not model.steps:
                 raise ValueError("Pipeline must contain at least one step.")
             if not isinstance(model[-1], MLPClassifier):
-                raise TypeError("Pipeline must terminate with an MLPClassifier.")
+                raise TypeError(
+                    f"Pipeline must terminate with an MLPClassifier, got {type(model[-1]).__name__}."
+                )
             self._pipeline: Pipeline | None = model
             self._estimator: MLPClassifier = model[-1]
         elif isinstance(model, MLPClassifier):
             self._pipeline = None
             self._estimator = model
         else:
-            raise TypeError("model must be an MLPClassifier or Pipeline ending in one.")
+            raise TypeError(
+                f"model must be an MLPClassifier or Pipeline ending in one, got {type(model).__name__}."
+            )
 
         if not hasattr(self._estimator, "coefs_"):
-            raise ValueError("The provided MLPClassifier instance is not fitted (missing 'coefs_').")
+            raise ValueError(
+                "The provided MLPClassifier instance is not fitted. "
+                "Call .fit(X, y) on the model before creating an MLPInspector."
+            )
 
         self.preprocess = preprocess
         self._transforms: list[_TransformInfo] = []
@@ -172,6 +222,37 @@ class MLPInspector:
                 self._transforms.append(
                     _TransformInfo(transformer=transformer, forward=transformer.transform, backward=backward)
                 )
+
+    # ------------------------------------------------------------------
+    # Helper methods
+    def _normalize_layer_index(self, layer_index: int, n_total_layers: int) -> int:
+        """Convert negative layer indices to positive indices.
+
+        Parameters
+        ----------
+        layer_index:
+            Layer index (can be negative for counting from end)
+        n_total_layers:
+            Total number of layers including input (len(forward_pass["A"]))
+
+        Returns
+        -------
+        int
+            Normalized positive layer index
+
+        Examples
+        --------
+        >>> # For a network with 3 layers (input, hidden, output), n_total_layers=3
+        >>> inspector._normalize_layer_index(-1, 3)  # Last layer
+        2
+        >>> inspector._normalize_layer_index(-2, 3)  # Second-to-last layer
+        1
+        >>> inspector._normalize_layer_index(1, 3)  # Already positive
+        1
+        """
+        if layer_index < 0:
+            return n_total_layers + layer_index
+        return layer_index
 
     # ------------------------------------------------------------------
     # Properties mirroring the estimator's attributes
@@ -189,12 +270,14 @@ class MLPInspector:
         return len(self._estimator.coefs_)
 
     @property
-    def coefs_(self) -> List[ArrayLike]:
-        return list(self._estimator.coefs_)
+    def coefs_(self) -> list[ArrayLike]:
+        """Weight matrices for each layer."""
+        return self._estimator.coefs_
 
     @property
-    def intercepts_(self) -> List[ArrayLike]:
-        return list(self._estimator.intercepts_)
+    def intercepts_(self) -> list[ArrayLike]:
+        """Bias vectors for each layer."""
+        return self._estimator.intercepts_
 
     @property
     def activation_name(self) -> str:
@@ -203,6 +286,16 @@ class MLPInspector:
     @property
     def out_activation_name(self) -> str:
         return self._estimator.out_activation_
+
+    @property
+    def n_classes_(self) -> int:
+        """Number of output classes."""
+        return self._estimator.n_outputs_
+
+    @property
+    def input_dim_(self) -> int:
+        """Number of input features."""
+        return self._estimator.n_features_in_
 
     # ------------------------------------------------------------------
     def _apply_forward_transforms(self, X: ArrayLike) -> ArrayLike:
@@ -252,7 +345,7 @@ class MLPInspector:
         return None
 
     # ------------------------------------------------------------------
-    def forward(self, X: ArrayLike, return_linear: bool = True) -> dict:
+    def forward(self, X: ArrayLike) -> dict:
         """Propagate inputs through the network.
 
         Parameters
@@ -261,13 +354,15 @@ class MLPInspector:
             Samples to propagate. They should be in the same representation as
             expected by the estimator (the inspector applies any pipeline
             transforms automatically).
-        return_linear:
-            Unused, retained for API completeness to match the specification.
 
         Returns
         -------
         dict
-            ``{'Z': [...], 'A': [...], 'y_pred': ..., 'proba': ...}``
+            Dictionary with keys:
+            - ``'Z'``: list of pre-activation arrays for each layer
+            - ``'A'``: list of activation arrays (including input as first element)
+            - ``'y_pred'``: predicted class labels
+            - ``'proba'``: class probabilities (if available)
         """
 
         X_net = self._apply_forward_transforms(X)
@@ -276,8 +371,8 @@ class MLPInspector:
         hidden_activation = self.activation_name
         output_activation = self.out_activation_name
 
-        Zs: List[ArrayLike] = []
-        As: List[ArrayLike] = [X_net]
+        Zs: list[ArrayLike] = []
+        As: list[ArrayLike] = [X_net]
         current = X_net
 
         for i, (w, bias) in enumerate(zip(W, b)):
@@ -302,7 +397,7 @@ class MLPInspector:
         return {"Z": Zs, "A": As, "y_pred": y_pred, "proba": proba}
 
     # ------------------------------------------------------------------
-    def get_layer_activations(self, X: ArrayLike, layer_index: int, kind: str = "A") -> ArrayLike:
+    def get_layer_activations(self, X: ArrayLike, layer_index: int, activation_type: str = "A") -> ArrayLike:
         """Return activations or pre-activations for a specific layer.
 
         Parameters
@@ -311,20 +406,25 @@ class MLPInspector:
             Input samples.
         layer_index:
             ``0`` corresponds to the network input, ``1..L-1`` to hidden layers,
-            and ``L`` to the output layer.
-        kind:
+            and ``L`` to the output layer. Negative indices count from the end.
+        activation_type:
             ``"A"`` for activations (default) or ``"Z"`` for pre-activations.
         """
 
         forward_pass = self.forward(X)
-        if layer_index < 0:
-            layer_index = len(forward_pass["A"]) - 1 + layer_index + 1
-        total_layers = len(forward_pass["A"]) - 1
-        if not (0 <= layer_index <= total_layers):
-            raise IndexError(f"layer_index must be in [0, {total_layers}], got {layer_index}.")
-        if kind not in {"A", "Z"}:
-            raise ValueError("kind must be 'A' or 'Z'.")
-        if kind == "A":
+        n_total_layers = len(forward_pass["A"])
+        layer_index = self._normalize_layer_index(layer_index, n_total_layers)
+
+        if not (0 <= layer_index < n_total_layers):
+            raise IndexError(
+                f"layer_index must be in [0, {n_total_layers - 1}] or negative for counting from end, "
+                f"got {layer_index}."
+            )
+        if activation_type not in {"A", "Z"}:
+            raise ValueError(
+                f"activation_type must be 'A' (activations) or 'Z' (pre-activations), got '{activation_type}'."
+            )
+        if activation_type == "A":
             return forward_pass["A"][layer_index]
         if layer_index == 0:
             raise ValueError("layer_index 0 (input) has no pre-activations.")
@@ -338,12 +438,11 @@ class MLPInspector:
         layer_index: int = -1,
         method: str = "pca",
         annotate_centroids: bool = True,
-        interactive: bool = False,
         random_state: int = 0,
     ):
         """Plot a 2D projection of layer activations via PCA or t-SNE."""
 
-        activations = self.get_layer_activations(X, layer_index, kind="A")
+        activations = self.get_layer_activations(X, layer_index, activation_type="A")
         if method.lower() == "pca":
             projector = PCA(n_components=2, random_state=random_state)
             emb = projector.fit_transform(activations)
@@ -360,14 +459,10 @@ class MLPInspector:
             emb = projector.fit_transform(activations)
             title = f"Layer {layer_index} t-SNE"
         else:
-            raise ValueError("method must be 'pca' or 'tsne'.")
-
-        if interactive:
-            if not _HAS_PLOTLY:
-                raise RuntimeError("plotly is required for interactive plots but is not installed.")
-            fig = px.scatter(x=emb[:, 0], y=emb[:, 1], color=y if y is not None else None)
-            fig.update_layout(title=title, xaxis_title="Component 1", yaxis_title="Component 2")
-            return fig
+            raise ValueError(
+                f"method must be 'pca' or 'tsne', got '{method}'. "
+                "Available methods: 'pca', 'tsne', 't-sne'."
+            )
 
         fig, ax = plt.subplots(figsize=(6, 5))
         scatter = ax.scatter(emb[:, 0], emb[:, 1], c=y, cmap="tab10", s=35, alpha=0.8)
@@ -385,7 +480,13 @@ class MLPInspector:
         return fig
 
     def plot_activation_hist(self, X: ArrayLike, layer_index: int, bins: int = 50):
-        """Plot histograms of neuron activations for a given layer."""
+        """Plot histograms of neuron activations for a given layer.
+
+        Returns
+        -------
+        Figure
+            Matplotlib figure containing the histograms.
+        """
 
         activations = self.get_layer_activations(X, layer_index)
         n_neurons = activations.shape[1]
@@ -401,10 +502,16 @@ class MLPInspector:
             else:
                 ax.axis("off")
         fig.tight_layout()
-        return fig, axes
+        return fig
 
     def plot_activation_heatmap(self, X: ArrayLike, layer_index: int, max_samples: int = 256):
-        """Heatmap of activations (samples × neurons)."""
+        """Heatmap of activations (samples × neurons).
+
+        Returns
+        -------
+        Figure
+            Matplotlib figure containing the heatmap.
+        """
 
         activations = self.get_layer_activations(X, layer_index)
         if activations.shape[0] > max_samples:
@@ -416,22 +523,32 @@ class MLPInspector:
         ax.set_ylabel("Sample")
         fig.colorbar(im, ax=ax, label="Activation")
         fig.tight_layout()
-        return fig, ax
+        return fig
 
     def plot_weight_heatmap(self, layer_index: int):
-        """Heatmap of the weight matrix feeding into ``layer_index``."""
+        """Heatmap of the weight matrix feeding into ``layer_index``.
+
+        Returns
+        -------
+        Figure
+            Matplotlib figure containing the weight heatmap.
+        """
 
         if layer_index <= 0 or layer_index > len(self.coefs_):
-            raise IndexError("layer_index must refer to a hidden or output layer (>=1).")
+            raise IndexError(
+                f"layer_index must refer to a hidden or output layer (>=1), got {layer_index}. "
+                f"Valid range: [1, {len(self.coefs_)}]."
+            )
         weights = self.coefs_[layer_index - 1]
         fig, ax = plt.subplots(figsize=(6, 5))
-        im = ax.imshow(weights, aspect="auto", cmap="coolwarm", vmin=-np.max(np.abs(weights)), vmax=np.max(np.abs(weights)))
+        vmax = np.max(np.abs(weights))
+        im = ax.imshow(weights, aspect="auto", cmap="coolwarm", vmin=-vmax, vmax=vmax)
         ax.set_title(f"Weights into Layer {layer_index}")
         ax.set_xlabel("Neuron")
         ax.set_ylabel("Input feature")
         fig.colorbar(im, ax=ax, label="Weight")
         fig.tight_layout()
-        return fig, ax
+        return fig
 
     # ------------------------------------------------------------------
     def top_k_examples(self, X: ArrayLike, neuron: tuple[int, int], k: int = 12) -> np.ndarray:
@@ -450,17 +567,20 @@ class MLPInspector:
         activations = self.get_layer_activations(X, layer_index)
         mean = activations.mean(axis=0)
         std = activations.std(axis=0)
-        sparsity = np.mean(np.abs(activations) < 1e-6, axis=0)
+        sparsity = np.mean(np.abs(activations) < SPARSITY_THRESHOLD, axis=0)
         stats = {"mean": mean, "std": std, "sparsity": sparsity}
         if y is not None:
             y = np.asarray(y)
             if y.ndim == 1:
                 y_encoded = y.astype(float)
-                y_encoded = (y_encoded - y_encoded.mean()) / (y_encoded.std() + 1e-9)
+                y_encoded = (y_encoded - y_encoded.mean()) / (y_encoded.std() + STD_EPSILON)
                 corr = activations.T @ y_encoded / (activations.shape[0] - 1)
                 stats["corr_y"] = corr
             else:
-                raise ValueError("y must be a 1D array-like of labels.")
+                raise ValueError(
+                    f"y must be a 1D array-like of labels, got shape {y.shape}. "
+                    "Multi-label classification is not supported."
+                )
         return stats
 
     # ------------------------------------------------------------------
@@ -491,10 +611,12 @@ class MLPInspector:
         elif target.get("type") == "neuron":
             layer = int(target.get("layer"))
             index = int(target.get("index"))
-            if layer < 0:
-                layer = len(As) - 1 + layer + 1
+            layer = self._normalize_layer_index(layer, len(As))
             if not (0 <= layer < len(As)):
-                raise ValueError("Target layer is out of bounds.")
+                raise ValueError(
+                    f"Target layer must be in [0, {len(As) - 1}] or negative for counting from end, "
+                    f"got {layer}."
+                )
             grad_A[layer][..., index] = 1.0
         else:
             raise ValueError("Unsupported target specification.")
@@ -546,7 +668,10 @@ class MLPInspector:
 
         x = _ensure_2d(x0).astype(float)
         if x.shape[0] != 1:
-            raise ValueError("activation_maximize currently supports a single initial point x0.")
+            raise ValueError(
+                f"activation_maximize currently supports a single initial point x0, "
+                f"got {x.shape[0]} samples. Pass a 1D array or 2D array with shape (1, n_features)."
+            )
 
         for step in range(steps):
             forward_pass = self.forward(x)
@@ -556,8 +681,7 @@ class MLPInspector:
             elif target.get("type") == "neuron":
                 layer = int(target.get("layer"))
                 index = int(target.get("index"))
-                if layer < 0:
-                    layer = len(forward_pass["A"]) - 1 + layer + 1
+                layer = self._normalize_layer_index(layer, len(forward_pass["A"]))
                 value = forward_pass["A"][layer][0, index]
             else:
                 raise ValueError("Unsupported target specification.")
