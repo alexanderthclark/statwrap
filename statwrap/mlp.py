@@ -397,18 +397,35 @@ class MLPInspector:
         return {"Z": Zs, "A": As, "y_pred": y_pred, "proba": proba}
 
     # ------------------------------------------------------------------
-    def get_layer_activations(self, X: ArrayLike, layer_index: int, activation_type: str = "A") -> ArrayLike:
+    def get_layer_activations(self, X: ArrayLike, layer_index: int, pre_activation: bool = False) -> ArrayLike:
         """Return activations or pre-activations for a specific layer.
 
         Parameters
         ----------
-        X:
+        X : array-like
             Input samples.
-        layer_index:
-            ``0`` corresponds to the network input, ``1..L-1`` to hidden layers,
-            and ``L`` to the output layer. Negative indices count from the end.
-        activation_type:
-            ``"A"`` for activations (default) or ``"Z"`` for pre-activations.
+        layer_index : int
+            Layer index where ``0`` corresponds to the network input,
+            ``1..L-1`` to hidden layers, and ``L`` to the output layer.
+            Negative indices count from the end (e.g., ``-1`` for output layer).
+        pre_activation : bool, default=False
+            If False (default), returns activations after applying the layer's
+            activation function (e.g., after ReLU, tanh). If True, returns
+            pre-activations (linear combinations before activation function).
+
+        Returns
+        -------
+        ndarray
+            Array of shape ``(n_samples, n_neurons)`` containing the requested
+            activations or pre-activations for the specified layer.
+
+        Raises
+        ------
+        IndexError
+            If ``layer_index`` is out of bounds for the network.
+        ValueError
+            If requesting pre-activations for the input layer (layer 0),
+            which has no pre-activations.
         """
 
         forward_pass = self.forward(X)
@@ -420,12 +437,11 @@ class MLPInspector:
                 f"layer_index must be in [0, {n_total_layers - 1}] or negative for counting from end, "
                 f"got {layer_index}."
             )
-        if activation_type not in {"A", "Z"}:
-            raise ValueError(
-                f"activation_type must be 'A' (activations) or 'Z' (pre-activations), got '{activation_type}'."
-            )
-        if activation_type == "A":
+
+        if not pre_activation:
             return forward_pass["A"][layer_index]
+
+        # Pre-activation requested
         if layer_index == 0:
             raise ValueError("layer_index 0 (input) has no pre-activations.")
         return forward_pass["Z"][layer_index - 1]
@@ -439,10 +455,50 @@ class MLPInspector:
         method: str = "pca",
         annotate_centroids: bool = True,
         random_state: int = 0,
+        pre_activation: bool = False,
     ):
-        """Plot a 2D projection of layer activations via PCA or t-SNE."""
+        """Plot a 2D projection of layer activations via PCA or t-SNE.
 
-        activations = self.get_layer_activations(X, layer_index, activation_type="A")
+        Visualizes high-dimensional layer activations in 2D using dimensionality
+        reduction. Useful for understanding how the network separates different
+        classes in its learned representation space.
+
+        Parameters
+        ----------
+        X : array-like
+            Input samples to visualize.
+        y : array-like, optional
+            Labels for coloring points by class. If None, all points are
+            colored the same.
+        layer_index : int, default=-1
+            Layer to visualize. Use ``-1`` for the output layer (default),
+            or specify a layer index (e.g., ``1`` for first hidden layer).
+        method : {'pca', 'tsne', 't-sne'}, default='pca'
+            Dimensionality reduction method. ``'pca'`` for Principal Component
+            Analysis, ``'tsne'`` or ``'t-sne'`` for t-SNE.
+        annotate_centroids : bool, default=True
+            If True and ``y`` is provided, annotates class centroids with
+            their labels.
+        random_state : int, default=0
+            Random seed for reproducibility of the projection.
+        pre_activation : bool, default=False
+            If False (default), visualizes post-activation values. If True,
+            visualizes pre-activation values (linear combinations before
+            activation function).
+
+        Returns
+        -------
+        Figure
+            Matplotlib figure containing the 2D projection scatter plot.
+
+        Raises
+        ------
+        ValueError
+            If ``method`` is not one of the supported dimensionality
+            reduction methods.
+        """
+
+        activations = self.get_layer_activations(X, layer_index, pre_activation=pre_activation)
         if method.lower() == "pca":
             projector = PCA(n_components=2, random_state=random_state)
             emb = projector.fit_transform(activations)
@@ -479,8 +535,21 @@ class MLPInspector:
                     ax.annotate(str(cls), xy=centroid, xytext=(5, 5), textcoords="offset points", fontsize=10)
         return fig
 
-    def plot_activation_hist(self, X: ArrayLike, layer_index: int, bins: int = 50):
+    def plot_activation_hist(self, X: ArrayLike, layer_index: int, bins: int = 50, pre_activation: bool = False):
         """Plot histograms of neuron activations for a given layer.
+
+        Parameters
+        ----------
+        X : array-like
+            Input samples to analyze.
+        layer_index : int
+            Layer to visualize.
+        bins : int, default=50
+            Number of histogram bins.
+        pre_activation : bool, default=False
+            If False (default), plots post-activation values. If True,
+            plots pre-activation values (linear combinations before
+            activation function).
 
         Returns
         -------
@@ -488,7 +557,7 @@ class MLPInspector:
             Matplotlib figure containing the histograms.
         """
 
-        activations = self.get_layer_activations(X, layer_index)
+        activations = self.get_layer_activations(X, layer_index, pre_activation=pre_activation)
         n_neurons = activations.shape[1]
         rows, cols = _grid_size(n_neurons)
         fig, axes = plt.subplots(rows, cols, figsize=(4 * cols, 3 * rows), squeeze=False)
@@ -504,8 +573,22 @@ class MLPInspector:
         fig.tight_layout()
         return fig
 
-    def plot_activation_heatmap(self, X: ArrayLike, layer_index: int, max_samples: int = 256):
+    def plot_activation_heatmap(self, X: ArrayLike, layer_index: int, max_samples: int = 256, pre_activation: bool = False):
         """Heatmap of activations (samples × neurons).
+
+        Parameters
+        ----------
+        X : array-like
+            Input samples to analyze.
+        layer_index : int
+            Layer to visualize.
+        max_samples : int, default=256
+            Maximum number of samples to include in heatmap. If X has more
+            samples, only the first max_samples are shown.
+        pre_activation : bool, default=False
+            If False (default), plots post-activation values. If True,
+            plots pre-activation values (linear combinations before
+            activation function).
 
         Returns
         -------
@@ -513,7 +596,7 @@ class MLPInspector:
             Matplotlib figure containing the heatmap.
         """
 
-        activations = self.get_layer_activations(X, layer_index)
+        activations = self.get_layer_activations(X, layer_index, pre_activation=pre_activation)
         if activations.shape[0] > max_samples:
             activations = activations[:max_samples]
         fig, ax = plt.subplots(figsize=(6, 5))
@@ -551,20 +634,90 @@ class MLPInspector:
         return fig
 
     # ------------------------------------------------------------------
-    def top_k_examples(self, X: ArrayLike, neuron: tuple[int, int], k: int = 12) -> np.ndarray:
-        """Indices of the ``k`` samples with the largest activation for ``neuron``."""
+    def top_k_examples(self, X: ArrayLike, neuron: tuple[int, int], k: int = 12, pre_activation: bool = False) -> np.ndarray:
+        """Find samples that maximally activate a specific neuron.
+
+        Returns the indices of the ``k`` samples from ``X`` that produce the
+        highest activation values for the specified neuron. Useful for
+        understanding what input patterns a neuron responds to most strongly.
+
+        Parameters
+        ----------
+        X : array-like
+            Input samples to analyze.
+        neuron : tuple of (int, int)
+            Neuron specification as ``(layer_index, neuron_index)``, where
+            ``layer_index`` is the layer number and ``neuron_index`` is the
+            neuron's index within that layer.
+        k : int, default=12
+            Number of top-activating examples to return.
+        pre_activation : bool, default=False
+            If False (default), ranks by post-activation values. If True,
+            ranks by pre-activation values (linear combinations before
+            activation function).
+
+        Returns
+        -------
+        ndarray
+            Array of shape ``(k,)`` containing indices into ``X`` of the
+            samples with the highest activations for the specified neuron,
+            sorted in descending order by activation value.
+
+        Raises
+        ------
+        IndexError
+            If ``neuron_index`` is out of bounds for the specified layer.
+        """
 
         layer, index = neuron
-        activations = self.get_layer_activations(X, layer)
+        activations = self.get_layer_activations(X, layer, pre_activation=pre_activation)
         if not (0 <= index < activations.shape[1]):
             raise IndexError(f"Neuron index {index} is out of bounds for layer {layer} with size {activations.shape[1]}.")
         top_idx = np.argsort(-activations[:, index])[:k]
         return top_idx
 
-    def neuron_stats(self, X: ArrayLike, layer_index: int, y: np.ndarray | None = None) -> dict:
-        """Compute simple statistics (mean/std/sparsity) per neuron."""
+    def neuron_stats(self, X: ArrayLike, layer_index: int, y: np.ndarray | None = None, pre_activation: bool = False) -> dict:
+        """Compute activation statistics for each neuron in a layer.
 
-        activations = self.get_layer_activations(X, layer_index)
+        Analyzes neuron behavior by computing summary statistics of their
+        activations across the provided samples. Optionally computes
+        correlation with target labels.
+
+        Parameters
+        ----------
+        X : array-like
+            Input samples to compute statistics over.
+        layer_index : int
+            Layer to analyze.
+        y : array-like, optional
+            Target labels. If provided, computes correlation between each
+            neuron's activations and the (standardized) labels.
+        pre_activation : bool, default=False
+            If False (default), computes statistics on post-activation values.
+            If True, computes statistics on pre-activation values (linear
+            combinations before activation function).
+
+        Returns
+        -------
+        dict
+            Dictionary with the following keys:
+
+            - ``'mean'`` : ndarray of shape ``(n_neurons,)``
+                Mean activation value for each neuron across samples.
+            - ``'std'`` : ndarray of shape ``(n_neurons,)``
+                Standard deviation of activations for each neuron.
+            - ``'sparsity'`` : ndarray of shape ``(n_neurons,)``
+                Fraction of near-zero activations (< 1e-6) for each neuron.
+            - ``'corr_y'`` : ndarray of shape ``(n_neurons,)``  (only if y provided)
+                Correlation between each neuron's activations and the labels.
+
+        Raises
+        ------
+        ValueError
+            If ``y`` is provided but is not a 1D array of labels.
+        """
+
+        activations = self.get_layer_activations(X, layer_index, pre_activation=pre_activation)
         mean = activations.mean(axis=0)
         std = activations.std(axis=0)
         sparsity = np.mean(np.abs(activations) < SPARSITY_THRESHOLD, axis=0)
@@ -644,7 +797,38 @@ class MLPInspector:
         return grad_A[0]
 
     def input_gradient(self, X: ArrayLike, target: dict) -> ArrayLike:
-        """Gradient of a class logit or neuron activation with respect to ``X``."""
+        """Compute gradient of a target quantity with respect to inputs.
+
+        Uses backpropagation to compute how changes in the input affect either
+        a class logit (for saliency maps) or a specific neuron's activation.
+        Useful for understanding what input features matter most for predictions.
+
+        Parameters
+        ----------
+        X : array-like
+            Input samples. Can be a single sample (1D) or batch (2D).
+        target : dict
+            Target specification dictionary with the following structure:
+
+            For class logits (saliency maps):
+                ``{'type': 'logit', 'class_index': int}``
+            For specific neuron activations:
+                ``{'type': 'neuron', 'layer': int, 'index': int}``
+
+        Returns
+        -------
+        ndarray
+            Gradient array with the same shape as ``X``. Each element indicates
+            how much that input feature contributes to the target quantity.
+            Larger absolute values indicate more important features.
+
+        Examples
+        --------
+        >>> # Compute saliency for class 0 prediction
+        >>> grad = inspector.input_gradient(X[0], {'type': 'logit', 'class_index': 0})
+        >>> # Compute gradient for neuron (1, 5)
+        >>> grad = inspector.input_gradient(X[0], {'type': 'neuron', 'layer': 1, 'index': 5})
+        """
 
         X = _ensure_2d(X)
         forward_pass = self.forward(X)
@@ -664,7 +848,64 @@ class MLPInspector:
         clip: tuple[float, float] | None = None,
         callback: Callable[[int, ArrayLike, float], None] | None = None,
     ) -> ArrayLike:
-        """Gradient ascent in input space to maximise a neuron/class logit."""
+        """Generate an input that maximally activates a target neuron or class.
+
+        Performs gradient ascent in input space to find an input pattern that
+        produces the highest activation for a specified neuron or class logit.
+        Useful for visualizing what features a neuron or classifier has learned.
+
+        Parameters
+        ----------
+        target : dict
+            Target specification dictionary:
+
+            For class logits:
+                ``{'type': 'logit', 'class_index': int}``
+            For specific neurons:
+                ``{'type': 'neuron', 'layer': int, 'index': int}``
+        x0 : array-like
+            Initial input to start optimization from. Must be a 1D array or
+            2D array with shape ``(1, n_features)``.
+        steps : int, default=300
+            Number of gradient ascent iterations.
+        lr : float, default=0.1
+            Learning rate for gradient ascent.
+        l2 : float, default=1e-3
+            L2 regularization strength to prevent unbounded values.
+        tv : float, default=0.0
+            Total variation regularization strength. Only applies if input
+            can be reshaped to a square image. Encourages smooth inputs.
+        clip : tuple of (float, float), optional
+            If provided, clips input values to ``[clip[0], clip[1]]`` after
+            each step to keep values in valid range.
+        callback : callable, optional
+            Function called after each step as ``callback(step, x, value)``
+            where ``step`` is the iteration number, ``x`` is the current input,
+            and ``value`` is the target activation value.
+
+        Returns
+        -------
+        ndarray
+            Optimized input array with the same shape as ``x0``, designed to
+            maximally activate the target.
+
+        Raises
+        ------
+        ValueError
+            If ``x0`` contains more than one sample or if ``target`` type is
+            not supported.
+
+        Examples
+        --------
+        >>> # Generate input that maximizes class 1 logit
+        >>> x_opt = inspector.activation_maximize(
+        ...     target={'type': 'logit', 'class_index': 1},
+        ...     x0=np.zeros(n_features),
+        ...     steps=200,
+        ...     lr=0.1,
+        ...     clip=(0, 1)
+        ... )
+        """
 
         x = _ensure_2d(x0).astype(float)
         if x.shape[0] != 1:
