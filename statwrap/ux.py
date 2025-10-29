@@ -48,11 +48,19 @@ class DataUploadWidget(widgets.VBox):
         ----------
         variable_name : str, optional
             The name of the variable to store the DataFrame in the IPython environment. Default is 'df'.
+        preview : bool, optional
+            If ``True`` display the head of the DataFrame after upload. Default is ``True``.
+
+        Notes
+        -----
+        Accepted file types are ``.csv``, ``.xlsx``, ``.xlsm``, ``.odf``, ``.ods`` and ``.odt``.
         """
         super().__init__()
         # Define the accepted file types
-        self.accept = '.csv,.xls,.xlsx,.xlsm,.xlsb,.odf,.ods,.odt'
-        self.supported = {'.csv', '.xls', '.xlsx', '.xlsm', '.xlsb', '.odf', '.ods', '.odt'}
+        # `.xls` and `.xlsb` are excluded due to a lack of reliable parsing
+        # dependencies in the base installation
+        self.accept = '.csv,.xlsx,.xlsm,.odf,.ods,.odt'
+        self.supported = {'.csv', '.xlsx', '.xlsm', '.odf', '.ods', '.odt'}
         # Create a submit button with the variable name embedded in the label
         self.submit_button = widgets.Button(description=f"Create DF as \"{variable_name}\"",
                                             layout=widgets.Layout(min_width='200px', width='fit-content'))
@@ -97,8 +105,8 @@ class DataUploadWidget(widgets.VBox):
             # Depending on the file extension, load the file content into a DataFrame
             if file_extension == 'csv':
                 df = pd.read_csv(content_stream)
-            elif file_extension in {'xls', 'xlsx', 'xlsm', 'xlsb'}:
-                df = pd.read_excel(content_stream, engine='openpyxl' if file_extension == 'xlsx' else None)
+            elif file_extension in {'xlsx', 'xlsm'}:
+                df = pd.read_excel(content_stream, engine='openpyxl')
             elif file_extension in {'odf', 'ods', 'odt'}:
                 df = pd.read_excel(content_stream, engine='odf')
             else:
