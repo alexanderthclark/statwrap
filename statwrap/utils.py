@@ -202,7 +202,7 @@ class Hyperplane:
             The coefficients defining the hyperplane.
         """
         array = args_to_array(coefficients)
-        self.coefficients = np.squeeze(np.array(coefficients))
+        self.coefficients = np.squeeze(np.array(array))
 
     def __call__(self, *args):
         """
@@ -255,10 +255,12 @@ class Hyperplane:
                 terms.append(f'{coef:+g} x')
         return r'$\hat{y} = ' + ' '.join(terms) + "$"
 
-    def predict(self, data, add_constant = True, dataframe = True):
+    def predict(self, data, add_constant = True):
 
         if not isinstance(data, pd.DataFrame):
             data = pd.DataFrame(data)
+        else:
+            data = data.copy()
 
         if add_constant:
             data.insert(0, 'constant', 1)
@@ -305,8 +307,8 @@ class RegressionLine(Hyperplane):
         self.__y = y
         self.__x = x
         self.__predictions = self.predict(self.__x)
+        self.__rms_error = np.sqrt(np.mean(self.__results.resid**2))
         self.__residuals = self.__results.resid.round(5)
-        self.__rms_error = np.sqrt(np.mean(self.__residuals**2))
 
     @property
     def y(self):
@@ -400,7 +402,7 @@ class RegressionLine(Hyperplane):
             if 'alpha' not in kwargs:
                 kwargs['alpha'] = 0.3 if len(x) > 99 else 1
             if 'color' not in kwargs:
-                color = 'C0'
+                kwargs['color'] = 'C0'
             if show == False:
                 kwargs['show'] = False
             fpp.scatter_plot(x, self.y, ax=ax, **kwargs)
