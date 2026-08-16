@@ -22,8 +22,9 @@ class LossSurface:
         If already fitted, we do not refit and we reuse its coefficients/intercept.
     X : array-like, shape (n_samples, 2)
     y : array-like, shape (n_samples,)
-    loss_range : float
-        Half-width of the coefficient window around the base point.
+    coefficient_range : float, optional
+        Half-width of the coefficient window around the base point. This controls
+        only the plotted axes, not model fitting or regularization. Default is 3.0.
     grid_size : int
         Resolution of the (w1, w2) grid.
 
@@ -37,7 +38,7 @@ class LossSurface:
 
     # ------------------------- initialization -------------------------
 
-    def __init__(self, model, X, y, loss_range=3.0, grid_size=50):
+    def __init__(self, model, X, y, coefficient_range=3.0, grid_size=50):
         # Coerce inputs
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float).ravel()
@@ -47,7 +48,7 @@ class LossSurface:
         if X.shape[0] != y.shape[0]:
             raise ValueError(f"X and y must have the same number of samples: {X.shape[0]} vs {y.shape[0]}")
 
-        self.loss_range = float(loss_range)
+        self.coefficient_range = float(coefficient_range)
         self.grid_size = int(grid_size)
 
         # Store centered data for surface calculations (intercept optimized out)
@@ -168,15 +169,15 @@ class LossSurface:
             alphas = np.sort(alphas)
         return alphas
 
-    def _resolve_loss_range(self, loss_range):
-        """Return a validated loss_range value for plotting windows."""
-        if loss_range is None:
-            loss_range = self.loss_range
+    def _resolve_coefficient_range(self, coefficient_range):
+        """Return a validated coefficient range for plotting windows."""
+        if coefficient_range is None:
+            coefficient_range = self.coefficient_range
         else:
-            loss_range = float(loss_range)
-            if loss_range <= 0:
-                raise ValueError("loss_range must be a positive number")
-        return float(loss_range)
+            coefficient_range = float(coefficient_range)
+            if coefficient_range <= 0:
+                raise ValueError("coefficient_range must be a positive number")
+        return float(coefficient_range)
 
     def evaluate_loss(self, coefficients, intercept=None):
         """
@@ -239,7 +240,8 @@ class LossSurface:
 
     # ------------------------- core plots -------------------------
 
-    def plot(self, plot_type='contour', ax=None, square=True, grid_size=None, loss_range=None):
+    def plot(self, plot_type='contour', ax=None, square=True, grid_size=None,
+             coefficient_range=None):
         """
         Plot MSE surface with base model solution overlay.
 
@@ -254,9 +256,9 @@ class LossSurface:
         grid_size : int, optional
             Resolution of the coefficient grid to use for this call. Defaults to the
             value provided at initialization.
-        loss_range : float, optional
+        coefficient_range : float, optional
             Half-width of the coefficient window around the base point. Defaults to the
-            value provided at initialization.
+            value provided at initialization and affects only the visualization.
 
         Returns
         -------
@@ -272,15 +274,18 @@ class LossSurface:
             if grid_size < 2:
                 raise ValueError("grid_size must be an integer >= 2")
 
-        if loss_range is None:
-            loss_range = self.loss_range
-        else:
-            loss_range = float(loss_range)
-            if loss_range <= 0:
-                raise ValueError("loss_range must be a positive number")
+        coefficient_range = self._resolve_coefficient_range(coefficient_range)
 
-        w1_range = np.linspace(w1_opt - loss_range, w1_opt + loss_range, grid_size)
-        w2_range = np.linspace(w2_opt - loss_range, w2_opt + loss_range, grid_size)
+        w1_range = np.linspace(
+            w1_opt - coefficient_range,
+            w1_opt + coefficient_range,
+            grid_size,
+        )
+        w2_range = np.linspace(
+            w2_opt - coefficient_range,
+            w2_opt + coefficient_range,
+            grid_size,
+        )
         W1, W2, Z = self._mse_grid(w1_range, w2_range)
 
         if plot_type == '3d':
@@ -351,10 +356,10 @@ class LossSurface:
 
         # Build grid bounds from all coefs
         all_coefs = np.vstack([self._coef2(m) for m in fitted])
-        w1_min = all_coefs[:, 0].min() - self.loss_range
-        w1_max = all_coefs[:, 0].max() + self.loss_range
-        w2_min = all_coefs[:, 1].min() - self.loss_range
-        w2_max = all_coefs[:, 1].max() + self.loss_range
+        w1_min = all_coefs[:, 0].min() - self.coefficient_range
+        w1_max = all_coefs[:, 0].max() + self.coefficient_range
+        w2_min = all_coefs[:, 1].min() - self.coefficient_range
+        w2_max = all_coefs[:, 1].max() + self.coefficient_range
 
         w1_range = np.linspace(w1_min, w1_max, self.grid_size)
         w2_range = np.linspace(w2_min, w2_max, self.grid_size)
@@ -380,7 +385,8 @@ class LossSurface:
 
     # ------------------------- regularization paths -------------------------
 
-    def plot_ridge_path_on_surface(self, alphas=None, ax=None, loss_range=None):
+    def plot_ridge_path_on_surface(self, alphas=None, ax=None,
+                                   coefficient_range=None):
         """Overlay the Ridge regularization path on the unregularized MSE surface.
 
         Parameters
@@ -389,15 +395,15 @@ class LossSurface:
             Regularization strengths. If None, uses a log-spaced default.
         ax : matplotlib.axes.Axes, optional
             Axes to plot on. If None, creates a new figure.
-        loss_range : float, optional
+        coefficient_range : float, optional
             Half-width of the coefficient window around the base point. Defaults to
-            the value provided at initialization.
+            the value provided at initialization and affects only the visualization.
         """
         alphas = self._ensure_alphas(alphas, np.logspace(-3, 2, 20))
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 6))
 
-        loss_range = self._resolve_loss_range(loss_range)
+        coefficient_range = self._resolve_coefficient_range(coefficient_range)
         fit_intercept = self.fit_intercept_pref_
 
         # OLS baseline
@@ -418,7 +424,7 @@ class LossSurface:
                                    alphas=np.r_[0.0, alphas],
                                    title="Ridge Regularization Path",
                                    ax=ax,
-                                   loss_range=loss_range)
+                                   coefficient_range=coefficient_range)
         return ax
 
     def plot_ridge_coef_path(self, alphas=None, ax=None):
@@ -505,7 +511,8 @@ class LossSurface:
 
         return np.vstack(coeffs)
 
-    def plot_lasso_path_on_surface(self, alphas=None, ax=None, loss_range=None):
+    def plot_lasso_path_on_surface(self, alphas=None, ax=None,
+                                   coefficient_range=None):
         """
         Overlay the Lasso regularization path on the unregularized MSE surface
         (intercept optimized). Includes the OLS point (α=0) at the start.
@@ -516,22 +523,22 @@ class LossSurface:
             Regularization strengths. If None, uses a log-spaced default.
         ax : matplotlib.axes.Axes, optional
             Axes to plot on. If None, creates a new figure.
-        loss_range : float, optional
+        coefficient_range : float, optional
             Half-width of the coefficient window around the base point. Defaults to
-            the value provided at initialization.
+            the value provided at initialization and affects only the visualization.
         """
         alphas = self._ensure_alphas(alphas, np.logspace(-3, 1, 20))
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 6))
 
-        loss_range = self._resolve_loss_range(loss_range)
+        coefficient_range = self._resolve_coefficient_range(coefficient_range)
         coefficients = self._lasso_path_coeffs(alphas)
         self._plot_path_on_surface(
             coefficients=coefficients,
             alphas=np.r_[0.0, alphas],
             title="Lasso Regularization Path",
             ax=ax,
-            loss_range=loss_range
+            coefficient_range=coefficient_range
         )
         return ax
 
@@ -562,7 +569,8 @@ class LossSurface:
 
     # ------------------------- helper for path overlay -------------------------
 
-    def _plot_path_on_surface(self, coefficients, alphas, title, ax=None, loss_range=None):
+    def _plot_path_on_surface(self, coefficients, alphas, title, ax=None,
+                              coefficient_range=None):
         """
         Overlay coefficient path on MSE contour plot.
 
@@ -576,7 +584,7 @@ class LossSurface:
             Title for the plot.
         ax : matplotlib.axes.Axes, optional
             Axes to plot on. If None, creates new figure.
-        loss_range : float, optional
+        coefficient_range : float, optional
             Half-width of the coefficient window around the base point. Defaults to
             the value provided at initialization.
 
@@ -585,10 +593,16 @@ class LossSurface:
         matplotlib.axes.Axes
             The axes object containing the plot.
         """
-        loss_range = self._resolve_loss_range(loss_range)
+        coefficient_range = self._resolve_coefficient_range(coefficient_range)
         center = np.asarray(self.w_opt_, dtype=float).reshape(2)
-        x_limits = (center[0] - loss_range, center[0] + loss_range)
-        y_limits = (center[1] - loss_range, center[1] + loss_range)
+        x_limits = (
+            center[0] - coefficient_range,
+            center[0] + coefficient_range,
+        )
+        y_limits = (
+            center[1] - coefficient_range,
+            center[1] + coefficient_range,
+        )
 
         w1_range = np.linspace(*x_limits, self.grid_size)
         w2_range = np.linspace(*y_limits, self.grid_size)
