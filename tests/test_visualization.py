@@ -54,6 +54,22 @@ class TestLossSurface(unittest.TestCase):
         loss = self.loss_surface.evaluate_loss([1.0, 2.0])
         self.assertIsInstance(loss, float)
 
+    def test_resolve_loss_range_validates_overrides(self):
+        """Test loss-range defaults, coercion, and positive-value validation."""
+        self.assertEqual(
+            self.loss_surface._resolve_loss_range(None),
+            self.loss_surface.loss_range,
+        )
+        self.assertEqual(self.loss_surface._resolve_loss_range("1.5"), 1.5)
+
+        for invalid_range in (0, -1):
+            with self.subTest(loss_range=invalid_range):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "loss_range must be a positive number",
+                ):
+                    self.loss_surface._resolve_loss_range(invalid_range)
+
     def tearDown(self):
         pass
 
