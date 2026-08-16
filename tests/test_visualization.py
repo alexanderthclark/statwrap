@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from statwrap.visualization import LossSurface
 
@@ -69,6 +70,29 @@ class TestLossSurface(unittest.TestCase):
                     "loss_range must be a positive number",
                 ):
                     self.loss_surface._resolve_loss_range(invalid_range)
+
+    def test_ridge_surface_respects_loss_range_limits(self):
+        """Test that path artists do not expand the requested surface window."""
+        loss_range = 0.25
+        center = self.loss_surface.w_opt_
+        expected_x_limits = (center[0] - loss_range, center[0] + loss_range)
+        expected_y_limits = (center[1] - loss_range, center[1] + loss_range)
+
+        ax = self.loss_surface.plot_ridge_path_on_surface(
+            alphas=[1e6],
+            loss_range=loss_range,
+        )
+        try:
+            path_x = ax.lines[0].get_xdata()
+            path_y = ax.lines[0].get_ydata()
+            self.assertTrue(
+                np.any((path_x < expected_x_limits[0]) | (path_x > expected_x_limits[1]))
+                or np.any((path_y < expected_y_limits[0]) | (path_y > expected_y_limits[1]))
+            )
+            np.testing.assert_allclose(ax.get_xlim(), expected_x_limits)
+            np.testing.assert_allclose(ax.get_ylim(), expected_y_limits)
+        finally:
+            plt.close(ax.figure)
 
     def tearDown(self):
         pass

@@ -587,9 +587,11 @@ class LossSurface:
         """
         loss_range = self._resolve_loss_range(loss_range)
         center = np.asarray(self.w_opt_, dtype=float).reshape(2)
+        x_limits = (center[0] - loss_range, center[0] + loss_range)
+        y_limits = (center[1] - loss_range, center[1] + loss_range)
 
-        w1_range = np.linspace(center[0] - loss_range, center[0] + loss_range, self.grid_size)
-        w2_range = np.linspace(center[1] - loss_range, center[1] + loss_range, self.grid_size)
+        w1_range = np.linspace(*x_limits, self.grid_size)
+        w2_range = np.linspace(*y_limits, self.grid_size)
         W1, W2, Z = self._mse_grid(w1_range, w2_range)
 
         if ax is None:
@@ -605,6 +607,11 @@ class LossSurface:
                    label=f'Start (α={alphas[0]:.3g})')
         ax.scatter(coefficients[-1, 0], coefficients[-1, 1], color='red', s=100, marker='s',
                    label=f'End (α={alphas[-1]:.3g})')
+
+        # Path artists can expand Matplotlib's autoscaled limits beyond the
+        # contour grid. Restore the requested coefficient window explicitly.
+        ax.set_xlim(*x_limits)
+        ax.set_ylim(*y_limits)
 
         ax.set_xlabel('Weight 1')
         ax.set_ylabel('Weight 2')
