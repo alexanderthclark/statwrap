@@ -1,9 +1,34 @@
 import unittest
+import subprocess
+import sys
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import statwrap.fpp  # noqa: F401  # ensure module initializes before importing utils
 from statwrap.utils import Hyperplane, RegressionLine
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+
+
+class TestImportOrder(unittest.TestCase):
+
+    def test_utils_and_fpp_import_independently(self):
+        import_orders = (
+            "import statwrap.utils; import statwrap.fpp",
+            "import statwrap.fpp; import statwrap.utils",
+        )
+
+        for statement in import_orders:
+            with self.subTest(statement=statement):
+                result = subprocess.run(
+                    [sys.executable, "-c", statement],
+                    cwd=REPOSITORY_ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
 
 
 class DummyResults:
