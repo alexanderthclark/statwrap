@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from IPython.core.magic import register_line_magic
-from statwrap.utils import modify_std, args_to_array, formula
+from .plotting import scatter_plot
+from .utils import modify_std, args_to_array, formula
 
 def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
     """
@@ -65,97 +66,6 @@ def box_model(*args, with_replacement = True, draws = 1, random_seed = None):
         return X[0]
     else:
         return X.tolist()
-
-def scatter_plot(x, y, xlim=None, ylim=None,
-              ax=None, show=True, save_as=None, xlabel=None,
-              ylabel=None, title=None, regression_line=False, regression_equation=False, **kwargs):
-    """
-    Create a scatter plot of `x` versus `y`, with specified axis labels, limits, title, and other properties.
-    Optionally, a regression line can be added to the plot.
-
-    Parameters
-    ----------
-    x : array-like
-        The data values for the x-axis.
-    y : array-like
-        The data values for the y-axis.
-    xlim : tuple, optional
-        The limits for the x-axis in the form of (xmin, xmax). Default is None.
-    ylim : tuple, optional
-        The limits for the y-axis in the form of (ymin, ymax). Default is None.
-    ax : matplotlib.axes._axes.Axes, optional
-        The axes upon which to plot. If None, new axes will be created. Default is None.
-    show : bool, optional
-        If True, display the plot. If False, return the plot object without displaying it. Default is True.
-    save_as : str, optional
-        The filename (with path) to save the figure. If None, the figure is not saved. Default is None.
-    xlabel : str, optional
-        The label for the x-axis. Default is None.
-    ylabel : str, optional
-        The label for the y-axis. Default is None.
-    title : str, optional
-        The title of the plot. Default is None.
-    regression_line : bool, optional
-        If True, a regression line will be added to the plot. Default is False.
-    regression_equation: bool, optional
-    	If True, the equation of the regression line will be added to the top of the plot. Default is False.
-    **kwargs : dict
-        Additional keyword arguments passed to `matplotlib.pyplot.scatter`.
-
-    Returns
-    -------
-    fig, ax : matplotlib.figure.Figure, matplotlib.axes._axes.Axes
-        The figure and axes objects, returned only if `show` is False.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> x = np.random.rand(50)
-    >>> y = np.random.rand(50)
-    >>> scatter_plot(x, y, xlabel='X-axis', ylabel='Y-axis', title='Scatter Plot', regression_line=True)
-
-    Notes
-    -----
-    If both `ax` and `show` are None, a new figure and axes will be created and displayed.
-    """
-    if ax is None:
-        fig, ax = plt.figure(), plt.axes()
-
-    if ('alpha' not in kwargs) and (len(x) > 100):
-            kwargs['alpha'] = 0.5
-
-    x = np.squeeze(np.array(x))
-    y = np.squeeze(np.array(y))
-    ax.scatter(x, y, **kwargs)
-
-    m, b = np.polyfit(x, y, 1)  # Calculating the slope (m) and intercept (b) of the regression line
-
-    if regression_line:
-        ax.plot(x, m*x + b, color='gray')  # Plotting the regression line
-
-    if regression_equation:
-        equation_text = f'y = {m:.2f}x + {b:.2f}'  # Add regression line equation to plot
-        ax.text(0.5, 1, equation_text, transform=ax.transAxes, fontsize=10,
-                verticalalignment='bottom', horizontalalignment='center', alpha=0.5)
-
-    if xlim is not None:
-        ax.set_xlim(xlim)
-    if ylim is not None:
-        ax.set_ylim(ylim)
-    if xlabel is not None:
-        ax.set_xlabel(xlabel)
-    if ylabel is not None:
-        ax.set_ylabel(ylabel)
-    if title is not None:
-        pad=12 if regression_equation else None
-        ax.set_title(title, pad=pad)
-
-    if save_as is not None:
-        plt.savefig(save_as)
-    if show:
-        plt.show()
-    else:
-        return plt.gcf(), ax  # use gcf in case ax is passed in call
 
 @formula
 def r(x, y):
@@ -599,4 +509,3 @@ def contingency_table(data, column_1, column_2):
 
     contingency_table = pd.crosstab(data[column_1], data[column_2])
     return contingency_table
-
