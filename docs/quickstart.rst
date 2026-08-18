@@ -31,4 +31,5 @@ A few convenience functions then become available. For example:
    average(1, 2, 3)
    box_model(1, 2, 3, draws=2, random_seed=0)
 
-See :doc:`python_primer` if you need a refresher on Python basics.
+See the `official Python tutorial <https://docs.python.org/3/tutorial/>`_ if
+you need a refresher on Python basics.

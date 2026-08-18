@@ -5,8 +5,8 @@ import numpy as np
 import functools
 import re
 import pandas as pd
-import statwrap.fpp as fpp
 from .exceptions import SimplePlotError
+from .plotting import scatter_plot as _scatter_plot
 import matplotlib.pyplot as plt
 from statsmodels.graphics.regressionplots import (
     plot_partregress_grid,
@@ -272,21 +272,6 @@ class RegressionLine(Hyperplane):
     """
     RegressionLine class extends Hyperplane to model a univariate regression line
     with given coefficients, input values (x), and target values (y).
-
-    Attributes
-    ----------
-    y : array-like
-        Target values.
-    x : array-like
-        Input values.
-    coefficients : tuple
-        Coefficients for the hyperplane.
-    residuals : array-like
-        Residuals of the regression.
-    predictions : array-like
-        Predicted values based on input x.
-    rms_error : float
-        Root Mean Square Error of the regression.
     """
 
     def __init__(self, y, x, results):
@@ -348,39 +333,43 @@ class RegressionLine(Hyperplane):
         else:
             return f
 
+    def _scatter_plot_each_predictor(self, y, zero_line=False, **kwargs):
+        """Plot a response against each predictor on its own axes."""
+        kwargs.pop('ax', None)
+        kwargs.pop('show', None)
+
+        predictors = pd.DataFrame(self.x)
+        _, axes = plt.subplots(
+            1,
+            len(predictors.columns),
+            sharey=True,
+            squeeze=False,
+        )
+        for key, column in enumerate(predictors.columns):
+            ax = axes[0, key]
+            _scatter_plot(
+                predictors[column],
+                y,
+                ax=ax,
+                show=False,
+                **kwargs,
+            )
+            if zero_line:
+                ax.axhline(0, color='black', lw=0.5)
+
     def scatter_plot(self, **kwargs):
         """Shows a scatter plot for the data."""
-        if False: #len(self.results.params) == 2:
-            if 'regression_line' not in kwargs:
-                kwargs['regression_line'] = True
-            return fpp.scatter_plot(self.x, self.y, **kwargs)
-        else:
-            tmp = pd.DataFrame(self.x)
-            ncol = len(tmp.columns)
-            fig, axs = plt.subplots(1, ncol, sharey=True, squeeze=False)
-            for key, col in enumerate(tmp.columns):
-                x0 = tmp[col]
-                ax = axs[0, key]
-                fpp.scatter_plot(x0, self.y, ax=ax, show=False)
-            plt.show()
+        self._scatter_plot_each_predictor(self.y, **kwargs)
+        plt.show()
 
     def residual_plot(self, **kwargs):
         """Shows a scatter plot of x vs the residuals."""
-        y = self.residuals
-        if False: #len(self.results.params) == 2:
-            if 'regression_line' not in kwargs:
-                kwargs['regression_line'] = True
-            return fpp.scatter_plot(self.x, y, **kwargs)
-        else:
-            tmp = pd.DataFrame(self.x)
-            ncol = len(tmp.columns)
-            fig, axs = plt.subplots(1, ncol, sharey=True, squeeze=False)
-            for key, col in enumerate(tmp.columns):
-                x0 = tmp[col]
-                ax = axs[0, key]
-                fpp.scatter_plot(x0, y, ax=ax, show=False)
-                ax.axhline(0, color = 'black', lw = 0.5)
-            plt.show()
+        self._scatter_plot_each_predictor(
+            self.residuals,
+            zero_line=True,
+            **kwargs,
+        )
+        plt.show()
 
     def plot(self, ax=None, show=True, scatter=True, **kwargs):
         """Make a plot with regression line. Only works for simple linear regression."""
@@ -405,7 +394,6 @@ class RegressionLine(Hyperplane):
                 kwargs['color'] = 'C0'
             if show == False:
                 kwargs['show'] = False
-            fpp.scatter_plot(x, self.y, ax=ax, **kwargs)
+            _scatter_plot(x, self.y, ax=ax, **kwargs)
         if show:
             plt.show()
-

@@ -1,9 +1,39 @@
 import unittest
+import subprocess
+import sys
+from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
-import statwrap.fpp  # noqa: F401  # ensure module initializes before importing utils
+import matplotlib.pyplot as plt
 from statwrap.utils import Hyperplane, RegressionLine
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+
+
+class TestImportOrder(unittest.TestCase):
+
+    def test_utils_and_fpp_import_independently(self):
+        import_orders = (
+            (
+                "import sys; import statwrap.utils; "
+                "assert 'statwrap.fpp' not in sys.modules; import statwrap.fpp"
+            ),
+            "import statwrap.fpp; import statwrap.utils",
+        )
+
+        for statement in import_orders:
+            with self.subTest(statement=statement):
+                result = subprocess.run(
+                    [sys.executable, "-c", statement],
+                    cwd=REPOSITORY_ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
 
 
 class DummyResults:
@@ -47,6 +77,16 @@ class TestRegressionLine(unittest.TestCase):
         np.testing.assert_allclose(self.line.residuals, self.results.resid.round(5))
         expected_rms = np.sqrt(np.mean(self.results.resid ** 2))
         self.assertAlmostEqual(self.line.rms_error, expected_rms)
+
+    def test_scatter_plot_forwards_style_to_shared_helper(self):
+        self.addCleanup(plt.close, "all")
+        with patch("statwrap.utils._scatter_plot") as scatter_plot:
+            with patch("statwrap.utils.plt.show"):
+                self.line.scatter_plot(color="purple")
+
+        self.assertEqual(scatter_plot.call_count, 1)
+        self.assertEqual(scatter_plot.call_args.kwargs["color"], "purple")
+        self.assertFalse(scatter_plot.call_args.kwargs["show"])
 
 
 if __name__ == "__main__":
