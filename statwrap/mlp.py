@@ -21,8 +21,7 @@ from typing import Callable
 import numpy as np
 
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
 
 from sklearn.base import BaseEstimator
 from sklearn.decomposition import PCA
@@ -36,7 +35,6 @@ ArrayLike = np.ndarray
 
 # Module-level constants
 SPARSITY_THRESHOLD = 1e-6  # Threshold for considering activations as zero
-STD_EPSILON = 1e-9  # Small constant to prevent division by zero in std calculations
 
 
 def _ensure_2d(X: ArrayLike) -> ArrayLike:
@@ -183,8 +181,9 @@ class MLPInspector:
         Fitted :class:`MLPClassifier` or a :class:`~sklearn.pipeline.Pipeline`
         whose final step is an ``MLPClassifier``.
     preprocess:
-        Optional callable ``X -> X_pre`` applied before any pipeline transforms
-        (useful if the inspector should operate on already-normalised data).
+        Optional callable ``X -> X_pre`` applied before prediction and before
+        any pipeline transforms. Gradient methods are unavailable when this is
+        supplied because an arbitrary callable does not expose its derivative.
     """
 
     def __init__(self, model: BaseEstimator, preprocess: Callable[[ArrayLike], ArrayLike] | None = None):
@@ -267,6 +266,12 @@ class MLPInspector:
 
     @property
     def n_layers_(self) -> int:
+        """Total layer count, including the input and output layers."""
+        return self._estimator.n_layers_
+
+    @property
+    def n_weight_layers_(self) -> int:
+        """Number of learned weight matrices in the network."""
         return len(self._estimator.coefs_)
 
     @property
@@ -290,7 +295,7 @@ class MLPInspector:
     @property
     def n_classes_(self) -> int:
         """Number of output classes."""
-        return self._estimator.n_outputs_
+        return len(self._estimator.classes_)
 
     @property
     def input_dim_(self) -> int:
@@ -298,13 +303,16 @@ class MLPInspector:
         return self._estimator.n_features_in_
 
     # ------------------------------------------------------------------
-    def _apply_forward_transforms(self, X: ArrayLike) -> ArrayLike:
-        X_net = _ensure_2d(X)
+    def _apply_preprocess(self, X: ArrayLike) -> ArrayLike:
         if self.preprocess is not None:
-            X_net = _ensure_2d(self.preprocess(X_net))
+            return self.preprocess(_ensure_2d(X))
+        return X
+
+    def _apply_forward_transforms(self, X: ArrayLike) -> ArrayLike:
+        X_net = X
         for info in self._transforms:
-            X_net = _ensure_2d(info.forward(X_net))
-        return X_net
+            X_net = info.forward(X_net)
+        return _ensure_2d(X_net)
 
     def _apply_backward_transforms(self, grad: ArrayLike) -> ArrayLike:
         grad_in = np.asarray(grad)
@@ -314,10 +322,6 @@ class MLPInspector:
                     f"Cannot backpropagate through transformer {info.transformer.__class__.__name__}."
                 )
             grad_in = _ensure_2d(info.backward(grad_in))
-        if self.preprocess is not None:
-            # Assume preprocess is a simple callable without Jacobian; best effort identity.
-            # Users requiring precise gradients should incorporate preprocessing inside the pipeline.
-            pass
         return grad_in
 
     @staticmethod
@@ -344,6 +348,25 @@ class MLPInspector:
 
         return None
 
+    def _resolve_class_logit(self, class_index: int) -> tuple[int, float]:
+        """Map a class position to its output logit and direction."""
+        class_index = int(class_index)
+        if not 0 <= class_index < self.n_classes_:
+            raise ValueError(
+                f"class_index must be in [0, {self.n_classes_ - 1}], "
+                f"got {class_index}."
+            )
+
+        n_output_units = self.coefs_[-1].shape[1]
+        if n_output_units == 1 and self.n_classes_ == 2:
+            sign = -1.0 if class_index == 0 else 1.0
+            return 0, sign
+        if class_index >= n_output_units:
+            raise ValueError(
+                f"class_index {class_index} has no corresponding output logit."
+            )
+        return class_index, 1.0
+
     # ------------------------------------------------------------------
     def forward(self, X: ArrayLike) -> dict:
         """Propagate inputs through the network.
@@ -365,7 +388,8 @@ class MLPInspector:
             - ``'proba'``: class probabilities (if available)
         """
 
-        X_net = self._apply_forward_transforms(X)
+        prediction_input = self._apply_preprocess(X)
+        X_net = self._apply_forward_transforms(prediction_input)
         W = self.coefs_
         b = self.intercepts_
         hidden_activation = self.activation_name
@@ -386,11 +410,11 @@ class MLPInspector:
             current = A
 
         predictor = self._pipeline if self._pipeline is not None else self._estimator
-        y_pred = predictor.predict(X)
+        y_pred = predictor.predict(prediction_input)
         proba = None
         if hasattr(predictor, "predict_proba"):
             try:
-                proba = predictor.predict_proba(X)
+                proba = predictor.predict_proba(prediction_input)
             except Exception:
                 proba = None
 
@@ -446,6 +470,72 @@ class MLPInspector:
             raise ValueError("layer_index 0 (input) has no pre-activations.")
         return forward_pass["Z"][layer_index - 1]
 
+    @staticmethod
+    def _prepare_projection_labels(
+        y: ArrayLike | None,
+        n_samples: int,
+    ) -> tuple[ArrayLike | None, ArrayLike | None, ArrayLike | None]:
+        if y is None:
+            return None, None, None
+
+        labels = np.asarray(y)
+        if labels.ndim != 1:
+            raise ValueError(f"y must be a 1D array-like of labels, got shape {labels.shape}.")
+        if labels.shape[0] != n_samples:
+            raise ValueError(
+                "X and y must contain the same number of samples; "
+                f"got {n_samples} and {labels.shape[0]}."
+            )
+
+        classes, color_values = np.unique(labels, return_inverse=True)
+        return labels, classes, color_values
+
+    @staticmethod
+    def _projection_embedding(
+        activations: ArrayLike,
+        layer_index: int,
+        method: str,
+        random_state: int,
+        perplexity: float | None,
+    ) -> tuple[ArrayLike, str]:
+        n_samples, n_features = activations.shape
+        if n_samples < 2:
+            raise ValueError("Layer projections require at least 2 samples.")
+
+        method_name = method.lower()
+        if method_name == "pca":
+            if min(n_samples, n_features) < 2:
+                embedding = np.column_stack((activations[:, 0], np.zeros(n_samples)))
+                return embedding, f"Layer {layer_index} activation (1D)"
+
+            projector = PCA(n_components=2, random_state=random_state)
+            embedding = projector.fit_transform(activations)
+            explained = projector.explained_variance_ratio_.sum()
+            return embedding, f"Layer {layer_index} PCA (var={explained:.2%})"
+
+        if method_name in {"tsne", "t-sne"}:
+            selected_perplexity = perplexity
+            if selected_perplexity is None:
+                selected_perplexity = min(30.0, max(1.0, (n_samples - 1) / 3.0))
+            if not 0 < selected_perplexity < n_samples:
+                raise ValueError(
+                    f"perplexity must be greater than 0 and less than the number of samples ({n_samples}), "
+                    f"got {selected_perplexity}."
+                )
+            projector = TSNE(
+                n_components=2,
+                init="pca" if n_features >= 2 else "random",
+                learning_rate="auto",
+                perplexity=selected_perplexity,
+                random_state=random_state,
+            )
+            return projector.fit_transform(activations), f"Layer {layer_index} t-SNE"
+
+        raise ValueError(
+            f"method must be 'pca' or 'tsne', got '{method}'. "
+            "Available methods: 'pca', 'tsne', 't-sne'."
+        )
+
     # ------------------------------------------------------------------
     def plot_layer_projection(
         self,
@@ -456,6 +546,7 @@ class MLPInspector:
         annotate_centroids: bool = True,
         random_state: int = 0,
         pre_activation: bool = False,
+        perplexity: float | None = None,
     ):
         """Plot a 2D projection of layer activations via PCA or t-SNE.
 
@@ -485,6 +576,10 @@ class MLPInspector:
             If False (default), visualizes post-activation values. If True,
             visualizes pre-activation values (linear combinations before
             activation function).
+        perplexity : float, optional
+            Perplexity used for t-SNE. If omitted, a valid value is selected
+            from the sample size, which makes the default suitable for small
+            classroom examples as well as larger datasets.
 
         Returns
         -------
@@ -495,42 +590,46 @@ class MLPInspector:
         ------
         ValueError
             If ``method`` is not one of the supported dimensionality
-            reduction methods.
+            reduction methods, labels do not match the samples, or t-SNE
+            perplexity is invalid.
         """
 
         activations = self.get_layer_activations(X, layer_index, pre_activation=pre_activation)
-        if method.lower() == "pca":
-            projector = PCA(n_components=2, random_state=random_state)
-            emb = projector.fit_transform(activations)
-            explained = projector.explained_variance_ratio_.sum()
-            title = f"Layer {layer_index} PCA (var={explained:.2%})"
-        elif method.lower() in {"tsne", "t-sne"}:
-            projector = TSNE(
-                n_components=2,
-                init="pca",
-                learning_rate="auto",
-                perplexity=30,
-                random_state=random_state,
-            )
-            emb = projector.fit_transform(activations)
-            title = f"Layer {layer_index} t-SNE"
-        else:
-            raise ValueError(
-                f"method must be 'pca' or 'tsne', got '{method}'. "
-                "Available methods: 'pca', 'tsne', 't-sne'."
-            )
+        labels, classes, color_values = self._prepare_projection_labels(y, activations.shape[0])
+        emb, title = self._projection_embedding(
+            activations,
+            layer_index,
+            method,
+            random_state,
+            perplexity,
+        )
 
         fig, ax = plt.subplots(figsize=(6, 5))
-        scatter = ax.scatter(emb[:, 0], emb[:, 1], c=y, cmap="tab10", s=35, alpha=0.8)
+        if color_values is None:
+            scatter = ax.scatter(emb[:, 0], emb[:, 1], s=35, alpha=0.8)
+        else:
+            scatter = ax.scatter(emb[:, 0], emb[:, 1], c=color_values, cmap="tab10", s=35, alpha=0.8)
         ax.set_title(title)
         ax.set_xlabel("Component 1")
         ax.set_ylabel("Component 2")
-        if y is not None:
-            legend = ax.legend(*scatter.legend_elements(), title="Classes", loc="best")
-            ax.add_artist(legend)
+        if labels is not None:
+            handles = [
+                Line2D(
+                    [0],
+                    [0],
+                    marker="o",
+                    linestyle="",
+                    markerfacecolor=scatter.cmap(scatter.norm(class_position)),
+                    markeredgecolor="none",
+                    alpha=0.8,
+                    label=str(class_label),
+                )
+                for class_position, class_label in enumerate(classes)
+            ]
+            ax.legend(handles=handles, title="Classes", loc="best")
             if annotate_centroids:
-                for cls in np.unique(y):
-                    mask = y == cls
+                for cls in classes:
+                    mask = labels == cls
                     centroid = emb[mask].mean(axis=0)
                     ax.annotate(str(cls), xy=centroid, xytext=(5, 5), textcoords="offset points", fontsize=10)
         return fig
@@ -680,8 +779,9 @@ class MLPInspector:
         """Compute activation statistics for each neuron in a layer.
 
         Analyzes neuron behavior by computing summary statistics of their
-        activations across the provided samples. Optionally computes
-        correlation with target labels.
+        activations across the provided samples. With target labels, computes
+        a one-vs-rest correlation for every class so the statistic has a clear
+        interpretation for binary and multiclass classification.
 
         Parameters
         ----------
@@ -690,8 +790,9 @@ class MLPInspector:
         layer_index : int
             Layer to analyze.
         y : array-like, optional
-            Target labels. If provided, computes correlation between each
-            neuron's activations and the (standardized) labels.
+            Target labels. If provided, computes the Pearson correlation
+            between each neuron's activations and each one-vs-rest class
+            indicator.
         pre_activation : bool, default=False
             If False (default), computes statistics on post-activation values.
             If True, computes statistics on pre-activation values (linear
@@ -708,13 +809,17 @@ class MLPInspector:
                 Standard deviation of activations for each neuron.
             - ``'sparsity'`` : ndarray of shape ``(n_neurons,)``
                 Fraction of near-zero activations (< 1e-6) for each neuron.
-            - ``'corr_y'`` : ndarray of shape ``(n_neurons,)``  (only if y provided)
-                Correlation between each neuron's activations and the labels.
+            - ``'classes'`` : ndarray of shape ``(n_classes,)`` (only if y provided)
+                Class labels corresponding to rows of ``'class_correlation'``.
+            - ``'class_correlation'`` : ndarray of shape ``(n_classes, n_neurons)``
+              (only if y provided)
+                One-vs-rest Pearson correlation for each class and neuron.
 
         Raises
         ------
         ValueError
-            If ``y`` is provided but is not a 1D array of labels.
+            If ``y`` is not a 1D array or does not contain one label per
+            sample.
         """
 
         activations = self.get_layer_activations(X, layer_index, pre_activation=pre_activation)
@@ -723,17 +828,36 @@ class MLPInspector:
         sparsity = np.mean(np.abs(activations) < SPARSITY_THRESHOLD, axis=0)
         stats = {"mean": mean, "std": std, "sparsity": sparsity}
         if y is not None:
-            y = np.asarray(y)
-            if y.ndim == 1:
-                y_encoded = y.astype(float)
-                y_encoded = (y_encoded - y_encoded.mean()) / (y_encoded.std() + STD_EPSILON)
-                corr = activations.T @ y_encoded / (activations.shape[0] - 1)
-                stats["corr_y"] = corr
-            else:
+            labels = np.asarray(y)
+            if labels.ndim != 1:
                 raise ValueError(
-                    f"y must be a 1D array-like of labels, got shape {y.shape}. "
+                    f"y must be a 1D array-like of labels, got shape {labels.shape}. "
                     "Multi-label classification is not supported."
                 )
+            if labels.shape[0] != activations.shape[0]:
+                raise ValueError(
+                    "X and y must contain the same number of samples; "
+                    f"got {activations.shape[0]} and {labels.shape[0]}."
+                )
+
+            classes = np.unique(labels)
+            centered_activations = activations - mean
+            activation_norms = np.linalg.norm(centered_activations, axis=0)
+            correlations = np.zeros((classes.size, activations.shape[1]))
+            for class_position, class_label in enumerate(classes):
+                indicator = (labels == class_label).astype(float)
+                centered_indicator = indicator - indicator.mean()
+                denominator = activation_norms * np.linalg.norm(centered_indicator)
+                numerator = centered_indicator @ centered_activations
+                np.divide(
+                    numerator,
+                    denominator,
+                    out=correlations[class_position],
+                    where=denominator > 0,
+                )
+
+            stats["classes"] = classes
+            stats["class_correlation"] = np.clip(correlations, -1.0, 1.0)
         return stats
 
     # ------------------------------------------------------------------
@@ -760,7 +884,8 @@ class MLPInspector:
 
         if target.get("type") == "logit":
             class_index = int(target.get("class_index", 0))
-            grad_Z[-1][..., class_index] = 1.0
+            output_index, sign = self._resolve_class_logit(class_index)
+            grad_Z[-1][..., output_index] = sign
         elif target.get("type") == "neuron":
             layer = int(target.get("layer"))
             index = int(target.get("index"))
@@ -828,13 +953,28 @@ class MLPInspector:
         >>> grad = inspector.input_gradient(X[0], {'type': 'logit', 'class_index': 0})
         >>> # Compute gradient for neuron (1, 5)
         >>> grad = inspector.input_gradient(X[0], {'type': 'neuron', 'layer': 1, 'index': 5})
+
+        Raises
+        ------
+        RuntimeError
+            If the inspector uses a custom preprocessing callable or an
+            unsupported pipeline transformer whose derivative is unknown.
         """
 
-        X = _ensure_2d(X)
-        forward_pass = self.forward(X)
-        grad = self._backpropagate(X, forward_pass=forward_pass, target=target)
+        if self.preprocess is not None:
+            raise RuntimeError(
+                "input gradients are unavailable with a custom preprocess callable because "
+                "its derivative is unknown; use a supported scaler inside a scikit-learn "
+                "Pipeline when gradients are required."
+            )
+
+        X_array = np.asarray(X)
+        original_shape = X_array.shape
+        X_2d = _ensure_2d(X_array)
+        forward_pass = self.forward(X_2d)
+        grad = self._backpropagate(X_2d, forward_pass=forward_pass, target=target)
         grad_input = self._apply_backward_transforms(grad)
-        return grad_input.reshape(X.shape)
+        return grad_input.reshape(original_shape)
 
     # ------------------------------------------------------------------
     def activation_maximize(
@@ -907,7 +1047,9 @@ class MLPInspector:
         ... )
         """
 
-        x = _ensure_2d(x0).astype(float)
+        x0_array = np.asarray(x0, dtype=float)
+        original_shape = x0_array.shape
+        x = _ensure_2d(x0_array)
         if x.shape[0] != 1:
             raise ValueError(
                 f"activation_maximize currently supports a single initial point x0, "
@@ -918,7 +1060,8 @@ class MLPInspector:
             forward_pass = self.forward(x)
             if target.get("type") == "logit":
                 class_index = int(target.get("class_index", 0))
-                value = forward_pass["Z"][-1][0, class_index]
+                output_index, sign = self._resolve_class_logit(class_index)
+                value = sign * forward_pass["Z"][-1][0, output_index]
             elif target.get("type") == "neuron":
                 layer = int(target.get("layer"))
                 index = int(target.get("index"))
@@ -948,5 +1091,4 @@ class MLPInspector:
             if callback is not None:
                 callback(step, x.copy(), float(value - penalty))
 
-        return x.reshape(x0.shape)
-
+        return x.reshape(original_shape)
