@@ -48,6 +48,37 @@ precedence. If all coefficients are zero, the boundary becomes a point.
    The pink line is the exact loss contour through the selected fit.
    The path shows how fitted coefficients move as alpha increases.
 
+Use alongside scikit-learn
+---------------------------
+
+Keep fitting, cross-validation, and test-set prediction in scikit-learn.
+Statwrap supplies the teaching plots and accepts an already-fitted estimator.
+For example, given training and test data with two predictors:
+
+.. code-block:: python
+
+   from sklearn.linear_model import Ridge
+   from sklearn.pipeline import make_pipeline
+
+   fit = make_pipeline(StandardScaler(), Ridge(alpha=30))
+   fit.fit(X_train, y_train)
+   predictions = fit.predict(X_test)
+
+   ridge = fit.named_steps["ridge"]
+   X_scaled = fit.named_steps["standardscaler"].transform(X_train)
+   surface = LossSurface(ridge, X_scaled, y_train)
+   surface.plot()
+
+The pipeline learns scaling on the training set and reuses it for predictions.
+Pass the fitted regression step and the matching transformed training data to
+``LossSurface``; it does not apply pipeline transformations itself. The plotted
+coefficients in this example are in standardized-predictor units.
+
+``surface.model`` is the supplied base estimator. Calling
+``surface.plot_regularization("ridge", alpha=...)`` draws a solution for that
+alpha and returns axes; it does not replace ``surface.model``. Fit and retain a
+scikit-learn estimator when you want predictions from a particular model.
+
 Compose layers during a lecture
 ---------------------------------
 
