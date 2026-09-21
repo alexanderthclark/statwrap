@@ -8,7 +8,7 @@ except NameError:
 
 from .exceptions import StatwrapError, SimplePlotError
 
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 
 __all__ = ["use_fpp", "use_sheets", "use_all", "__version__", "StatwrapError", "SimplePlotError"]
 
