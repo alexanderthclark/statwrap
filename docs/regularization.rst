@@ -96,7 +96,7 @@ adds only the path to arbitrary axes; ``draw_surface=True`` explicitly redraws
 the background. Plot appearance options are applied when the background is
 drawn. Call ``plot`` again on fresh axes to change those options.
 
-For a direct replacement of the notebook's original drawing functions:
+To draw individual norm boundaries:
 
 .. code-block:: python
 
@@ -189,14 +189,9 @@ See the official `Ridge documentation
 <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html>`_
 and `Lasso documentation
 <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html>`_
-for these objective conventions. Cross-validation remains standard
-scikit-learn: the example notebook uses a scaler inside the cross-validation
-pipeline and ``scoring="neg_mean_squared_error"``.
-
-The runnable lecture example is ``examples/regularization_teaching.ipynb`` in
-the repository. It covers perfect collinearity, orthogonal predictors,
-correlated predictors, coefficient paths, cross-validation, principal
-directions, and added orthogonal noise.
+for these objective conventions. For cross-validation in scikit-learn, keep
+scaling inside the cross-validation pipeline and use
+``scoring="neg_mean_squared_error"`` when selecting by validation MSE.
 
 API reference
 ---------------
