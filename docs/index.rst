@@ -18,6 +18,7 @@ Find the source code on `GitHub <https://github.com/alexanderthclark/statwrap>`_
    fpp
    sheets
    ux
+   regularization
    modules
 
 Indices and tables

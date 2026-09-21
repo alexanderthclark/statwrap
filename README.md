@@ -22,6 +22,28 @@ Python is known for its simplicity and readability. Still, someone new to statis
 
 The design principles of this package are mostly the design principles of Python. However, we don't always adhere to the principle that "explicit is better than implicit" and we prefer convention to configuration, with the configuration being done once with a magic command like `%use_fpp`. 
 
+# Teaching regularization
+
+`LossSurface` makes two-predictor regularization diagrams for Matplotlib and
+notebooks. Given `X` with two columns and a response `y`:
+
+```python
+from sklearn.linear_model import LinearRegression
+from statwrap.visualization import LossSurface
+
+surface = LossSurface(LinearRegression(), X, y)
+ax = surface.plot_regularization("lasso", alpha=0.5)
+```
+
+This draws MSE contours, the coefficient path, the selected fit, and its matching
+L1 boundary. Use `"ridge"` for an L2 circle. Plotting methods return axes and compose
+without redrawing an existing background. DataFrame columns supply coefficient
+labels; standardize predictors explicitly when appropriate.
+
+See the [teaching notebook](examples/regularization_teaching.ipynb) and
+[regularization guide](docs/regularization.rst) for eigenvector overlays,
+coefficient plots, noise comparisons, and the different ridge/lasso alpha conventions.
+
 # Bugs and Feature Requests
 
 If you find a bug or think of a useful feature, please open an issue here on Github, please see our [Contributors Guide](.github/CONTRIBUTING.md) for more details.
